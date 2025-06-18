@@ -30,7 +30,7 @@ fi
 echo "• Configuring LibRaw"
 CC=${HOST}-gcc  CXX=${HOST}-g++  RANLIB=${HOST}-ranlib \
 ./configure --host="$HOST" \
-            --disable-shared --enable-static \
+            --disable-shared --enable-static --disable-examples \
             CFLAGS="-O3" \
             LDFLAGS="-lz -lws2_32"
 
