@@ -33,7 +33,7 @@ jobs:
 
       # ----- build -----
       - name: Build rawkit (${{ matrix.arch }})
-        run: ./scripts/build_linux.sh "${VERSION}" "${{ matrix.arch }}"
+        run: bash ./scripts/build_linux.sh "${VERSION}" "${{ matrix.arch }}"
 
       
       - name: Upload libraw*.a
