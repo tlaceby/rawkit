@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   build:
     strategy:
       fail-fast: false
@@ -19,6 +20,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+            submodules: recursive
+
       - run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
 
       - if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
@@ -26,13 +30,23 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
+      - name: Fetch LibRaw
+        shell: bash
+        run: |
+          # Clone only if LibRaw/ is absent (keeps job idempotent)
+          if [ ! -d LibRaw ]; then
+            echo "Cloning LibRaw …"
+            git clone --depth 1 https://github.com/LibRaw/LibRaw.git LibRaw
+          fi
+
+      # ----- build -----------------------------------------------------
       - name: Build rawkit ${{ matrix.os }} ${{ matrix.arch }}
         shell: bash
         run: |
           case "${{ matrix.os }}" in
             ubuntu*)  bash scripts/build_linux.sh  "${VERSION}" "${{ matrix.arch }}";;
             macos*)   bash scripts/build_darwin.sh "${VERSION}" "${{ matrix.arch }}";;
-            windows*) bash scripts/build_windows.sh "${VERSION}" ;;
+            windows*) bash scripts/build_windows_mingw.sh "${VERSION}"           ;;
           esac
 
       # libs/linux_<arch>/vX.Y.Z/libraw*.a
