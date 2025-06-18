@@ -6,9 +6,17 @@ set -euo pipefail
 # Example: ./scripts/build_linux.sh v0.2.0 amd64
 # ------------------------------------------------------------
 
+
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ -f "${PROJECT_ROOT}/.env" ]]; then
   set -a; . "${PROJECT_ROOT}/.env"; set +a
+fi
+
+LIBRAW_DIR="$PROJECT_ROOT/LibRaw"
+
+if [[ ! -d "$LIBRAW_DIR" ]]; then
+  echo "• Cloning LibRaw source"
+  git clone --depth 1 https://github.com/LibRaw/LibRaw.git "$LIBRAW_DIR"
 fi
 
 VERSION="${1:-${VERSION:-v0.0.1}}"
