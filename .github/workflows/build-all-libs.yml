@@ -20,8 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-            submodules: recursive
 
       - run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
 
