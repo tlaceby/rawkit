@@ -1,5 +1,4 @@
 name: rawkit • build static libs
-
 on:
   push:
     tags: ['v*']
@@ -13,11 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:   [ubuntu-latest, macos-latest ] # , windows-latest ]
+        os:   [ubuntu-latest, macos-latest]   # , windows-latest
         arch: [amd64, arm64]
         # exclude:
-          # - os: windows-latest
-          #   arch: arm64
+        #   - os: windows-latest
+        #     arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -74,28 +73,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # bring the repo (with .git) into the workspace
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: false          # keep the dist/ folder we create later
+
+      # download all build artefacts
       - uses: actions/download-artifact@v4
         with:
           path: dist
 
+      # copy each .a into <os_arch>/<VERSION>/ and <os_arch>/current/
       - name: Re-assemble repo hierarchy
         shell: bash
         run: |
-          shopt -s globstar nullglob 
+          shopt -s globstar nullglob
           for f in dist/**/libraw*.a; do
             dir=$(dirname "$f")                 # dist/libs-ubuntu-latest-amd64
             osarch=${dir#dist/libs-}            # ubuntu-latest-amd64
-            os=${osarch%-latest-*}              # ubuntu
-            arch=${osarch##*-}                  # amd64
-            tgt="libs/${os}_${arch}/${VERSION}"
-            mkdir -p "$tgt"
-            cp "$f" "$tgt/"
-            ln -snf "$VERSION" "libs/${os}_${arch}/current"
+            os=${osarch%-latest-*}              # ubuntu | macos
+            arch=${osarch##*-}                  # amd64  | arm64
+
+            version_dir="libs/${os}_${arch}/${VERSION}"
+            current_dir="libs/${os}_${arch}/current"
+
+            mkdir -p "$version_dir" "$current_dir"
+            cp "$f" "$version_dir/"
+            cp "$f" "$current_dir/"
           done
 
-
-      - name: Commit refreshed libs/current
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: "chore: update static libs for ${VERSION}"
