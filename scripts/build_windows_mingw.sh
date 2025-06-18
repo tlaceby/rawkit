@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # ------------------------------------------------------------
-# rawkit — build static LibRaw + wrapper for Windows x86-64
+# rawkit — build static LibRaw + wrapper for Windows-amd64 (mingw-w64)
 # Usage:  ./scripts/build_windows_mingw.sh  vX.Y.Z
 # ------------------------------------------------------------
 
@@ -30,17 +30,18 @@ fi
 if [[ ! -f lib/libraw.a ]]; then
   echo "• Configuring LibRaw"
   CC=${HOST}-gcc  CXX=${HOST}-g++  RANLIB=${HOST}-ranlib \
-  ./configure --host="$HOST" --disable-shared --enable-static CFLAGS="-O3"
-
-  echo "• Compiling *only* libraw.a (skip sample tools)"
-  make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 1)" lib/libraw.a
+  ./configure --host="$HOST" --disable-shared --enable-static \
+              CFLAGS="-O3" LDFLAGS="-lz"
+  echo "• Compiling *library only*"
+  make -j"$(nproc 2>/dev/null || echo 1)" lib/libraw.a   # <-- no demo tools
 fi
 popd >/dev/null
 
+# ---------- headers ------------------------------------------
 echo "• Syncing LibRaw headers"
 for h in "$LIBRAW_DIR"/libraw/*.h; do
   dst="$INC_DIR/$(basename "$h")"
-  [[ -f "$dst" && -s "$dst" && cmp -s "$h" "$dst" ]] || cp "$h" "$dst"
+  [[ -f "$dst" && cmp -s "$h" "$dst" ]] || cp "$h" "$dst"
 done
 cp "$LIBRAW_DIR/lib/libraw.a" "$OUT/"
 
