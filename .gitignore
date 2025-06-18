@@ -1,2 +1,2 @@
-# ignore every versioned payload libs/<os>_<arch>/vX.Y.Z/
-libs/*/*/v*/
+libs/*/*/v*/    # <- ignore the whole version folder
+!libs/*/*/current/   # but keep the 'current' symlink that Go/cgo needs

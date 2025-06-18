@@ -44,19 +44,22 @@ jobs:
           mingw-w64-x86_64-zlib
 
     # --- build ---------------------------------------------------
-    - name: Build rawkit ${{ matrix.os }} ${{ matrix.arch }}
-      shell: |
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          msys2 {0}
-        else
-          bash {0}
-        fi
-      run: |
-        case "${{ matrix.os }}" in
-          ubuntu*)  bash scripts/build_linux.sh        "$VERSION" "${{ matrix.arch }}";;
-          macos*)   bash scripts/build_darwin.sh       "$VERSION" "${{ matrix.arch }}";;
-          windows*) bash scripts/build_windows_mingw.sh "$VERSION";;
-        esac
+    # --- build on Windows (MSYS2) ---------------------------------
+      - name: Build rawkit (windows / ${{ matrix.arch }})
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          bash scripts/build_windows_mingw.sh "$VERSION"
+
+      # --- build on everything else ---------------------------------
+      - name: Build rawkit (${{ runner.os }} / ${{ matrix.arch }})
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          case "${{ runner.os }}" in
+            Linux)  bash scripts/build_linux.sh  "$VERSION" "${{ matrix.arch }}";;
+            macOS)  bash scripts/build_darwin.sh "$VERSION" "${{ matrix.arch }}";;
+          esac
 
     - uses: actions/upload-artifact@v4
       with:
