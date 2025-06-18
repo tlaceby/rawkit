@@ -4,6 +4,7 @@ set -euo pipefail
 # rawkit — build static LibRaw + wrapper for Windows-amd64 (mingw-w64)
 # Usage:  ./scripts/build_windows_mingw.sh  vX.Y.Z
 # ------------------------------------------------------------
+# FIXME: Verrly likely does not work. Could not get static lib built with workflows.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ -f "${PROJECT_ROOT}/.env" ]] && { set -a; . "${PROJECT_ROOT}/.env"; set +a; }
