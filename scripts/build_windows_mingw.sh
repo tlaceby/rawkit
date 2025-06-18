@@ -27,14 +27,15 @@ if [[ ! -f configure ]]; then
   make -f Makefile.dist
 fi
 
-if [[ ! -f lib/libraw.a ]]; then
-  echo "• Configuring LibRaw"
-  CC=${HOST}-gcc  CXX=${HOST}-g++  RANLIB=${HOST}-ranlib \
-  ./configure --host="$HOST" --disable-shared --enable-static \
-              CFLAGS="-O3" LDFLAGS="-lz"
-  echo "• Compiling *library only*"
-  make -j"$(nproc 2>/dev/null || echo 1)" lib/libraw.a   # <-- no demo tools
-fi
+echo "• Configuring LibRaw"
+CC=${HOST}-gcc  CXX=${HOST}-g++  RANLIB=${HOST}-ranlib \
+./configure --host="$HOST" \
+            --disable-shared --enable-static \
+            CFLAGS="-O3" \
+            LDFLAGS="-lz -lws2_32"
+
+echo "• Compiling LibRaw (library only)"
+make -C lib -j"$(nproc 2>/dev/null || echo 1)" libraw.a
 popd >/dev/null
 
 # ---------- headers ------------------------------------------
