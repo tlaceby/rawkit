@@ -81,6 +81,7 @@ jobs:
       - name: Re-assemble repo hierarchy
         shell: bash
         run: |
+          shopt -s globstar nullglob 
           for f in dist/**/libraw*.a; do
             dir=$(dirname "$f")                 # dist/libs-ubuntu-latest-amd64
             osarch=${dir#dist/libs-}            # ubuntu-latest-amd64
@@ -91,6 +92,7 @@ jobs:
             cp "$f" "$tgt/"
             ln -snf "$VERSION" "libs/${os}_${arch}/current"
           done
+
 
       - name: Commit refreshed libs/current
         uses: stefanzweifel/git-auto-commit-action@v5
