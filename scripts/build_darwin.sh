@@ -3,51 +3,49 @@ set -euo pipefail
 # ------------------------------------------------------------
 # rawkit — build static LibRaw + wrapper for macOS
 # Usage:  ./scripts/build_darwin.sh [VERSION] [ARCH]
+#         VERSION defaults to the one in .env (or v0.0.1)
+#         ARCH    defaults to your host  (arm64 on Apple Silicon)
 # ------------------------------------------------------------
 
+# ---------- 0. load .env (if present) ------------------------
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[[ -f "${PROJECT_ROOT}/.env" ]] && { set -a; . "${PROJECT_ROOT}/.env"; set +a; }
+if [[ -f "${PROJECT_ROOT}/.env" ]]; then
+  set -a; . "${PROJECT_ROOT}/.env"; set +a
+fi
 
 VERSION="${1:-${VERSION:-v0.0.1}}"
-ARCH="${2:-$(uname -m)}"            # arm64 | x86_64
+ARCH="${2:-$(uname -m)}"
 OUT="$PROJECT_ROOT/libs/darwin_${ARCH}/${VERSION}"
-
 WRAPPER_DIR="$PROJECT_ROOT/wrapper"
 INC_DIR="$PROJECT_ROOT/include/libraw"
-
-
 LIBRAW_DIR="$PROJECT_ROOT/LibRaw"
-if [[ ! -d "$LIBRAW_DIR" ]]; then
-  echo "• Cloning LibRaw repository"
-  git clone --depth 1 https://github.com/LibRaw/LibRaw.git "$LIBRAW_DIR"
-fi
-
-
-if [[ ! -f "$LIBRAW_DIR/configure" ]]; then
-  echo "• Running autoreconf"
-  (cd "$LIBRAW_DIR" && autoreconf -fi)
-fi
 
 echo "▶ Building rawkit for macOS ${ARCH} → ${OUT}"
 mkdir -p "$OUT" "$INC_DIR"
 
-
 pushd "$LIBRAW_DIR" >/dev/null
+
+if [[ ! -f configure ]]; then
+  echo "• Generating configure script"
+  make -f Makefile.dist
+fi
+
 if [[ ! -f lib/libraw.a ]]; then
   echo "• Configuring LibRaw"
   ./configure --disable-shared --enable-static CFLAGS="-O3" >/dev/null
   echo "• Compiling LibRaw"
-  make -j"$(sysctl -n hw.ncpu)"        >/dev/null
+  make -j"$(sysctl -n hw.ncpu)"    >/dev/null
 fi
 popd >/dev/null
 
-
-echo "• Syncing LibRaw headers"
+echo "• Syncing LibRaw public headers"
 for h in "$LIBRAW_DIR"/libraw/*.h; do
   dst="$INC_DIR/$(basename "$h")"
-  [[ -f "$dst" && -z "$(cmp -s "$h" "$dst"; echo $?)" ]] && continue
-  cp "$h" "$INC_DIR/"
+  if [[ ! -f "$dst" ]] || ! cmp -s "$h" "$dst"; then
+    cp "$h" "$dst"
+  fi
 done
+
 cp "$LIBRAW_DIR/lib/libraw.a" "$OUT/"
 
 echo "• Building libraw_wrapper.a"
@@ -59,4 +57,5 @@ c++ -std=c++17 -O3 \
 ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
 rm "$OUT/libraw_wrapper.o"
 
-ln -sfn "$OUT" "$PROJECT_ROOT/libs/darwin_${ARCH}
+ln -sfn "${OUT}" "${PROJECT_ROOT}/libs/darwin_${ARCH}/current"
+echo "✔ rawkit done  (current → ${VERSION})"

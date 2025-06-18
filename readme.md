@@ -113,16 +113,3 @@ My goal for **rawkit** is simple: Use it with other astrophotography application
 * **Large RAW assets** – dont! :)
 
 ---
-
-## 🚀 Developer (Contributor) Tooling
-
-| OS | 1-time deps |
-|----|-------------|
-| macOS | `brew install go autoconf automake libtool` |
-| Ubuntu | `sudo apt-get install -y go autoconf automake libtool build-essential pkg-config zlib1g-dev` |
-| Windows (MSYS2) | `pacman -S --needed go git mingw-w64-x86_64-toolchain autoconf automake libtool` |
-
-```bash
-git clone https://github.com/tlaceby/rawkit.git && cd rawkit
-make verify        # builds LibRaw + wrapper for your host and runs tests
-````
