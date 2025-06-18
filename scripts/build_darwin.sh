@@ -57,4 +57,5 @@ c++ -std=c++17 -O3 \
 ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
 rm "$OUT/libraw_wrapper.o"
 
-echo "✔ rawkit done: $OUT/{libraw.a,libraw_wrapper.a}"
+ln -sfn "${OUT}" "${PROJECT_ROOT}/libs/darwin_${ARCH}/current"
+echo "✔ rawkit done  (current → ${VERSION})"

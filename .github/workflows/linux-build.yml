@@ -1,50 +1,66 @@
-name: Build rawkit Linux libs
+name: rawkit • Linux static libs
 
 on:
   push:
-    tags: ["v*"]
-  workflow_dispatch:
+    tags:
+      - 'v*'            
+  workflow_dispatch:    
 
 jobs:
-  linux:
+  build:
+    name: build-${{ matrix.arch }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         arch: [amd64, arm64]
-    env:
-      VERSION_FILE: .env
+
     steps:
       - uses: actions/checkout@v4
-      - name: Export .env variables
-        run: |
-          if [[ -f "$VERSION_FILE" ]]; then
-            # shellcheck disable=SC2046
-            echo "$(grep -v '^\s*#' $VERSION_FILE | xargs -d '\n')" >> "$GITHUB_ENV"
-          fi
 
+      
+      - name: Export VERSION
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+
+      
       - name: Install build deps
         run: |
           sudo apt-get update -qq
-          # host compiler always needed
           sudo apt-get install -y build-essential zlib1g-dev
           if [[ "${{ matrix.arch }}" == "arm64" ]]; then
             sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           fi
 
-      - name: Build rawkit Linux ${{ matrix.arch }}
-        run: |
-          ARCH="${{ matrix.arch }}"
-          ./scripts/build_linux.sh "${VERSION:-v0.0.1}" "$ARCH"
+      # ----- build -----
+      - name: Build rawkit (${{ matrix.arch }})
+        run: ./scripts/build_linux.sh "${VERSION}" "${{ matrix.arch }}"
 
-      - uses: actions/upload-artifact@v4
+      
+      - name: Upload libraw*.a
+        uses: actions/upload-artifact@v4
         with:
-          name: rawkit-libs-linux-${{ matrix.arch }}-${{ env.VERSION }}
-          path: |
-            libs/linux_${{ matrix.arch }}/${{ env.VERSION }}/libraw*.a
+          name: linux-${{ matrix.arch }}-libs
+          path: libs/linux_${{ matrix.arch }}/${{ env.VERSION }}/libraw*.a
 
-      - name: Upload release asset
-        if: startsWith(github.ref, 'refs/tags/')
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist                              
+
+      - name: List artefacts (debug)
+        run: ls -R dist
+
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: RawKit ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
           files: |
-            libs/linux_${{ matrix.arch }}/${{ env.VERSION }}/libraw*.a
+            dist/linux-amd64-libs/libraw*.a
+            dist/linux-arm64-libs/libraw*.a

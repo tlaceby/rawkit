@@ -48,4 +48,5 @@ ${HOST}-g++ -std=c++17 -O3 \
 ${HOST}-ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
 rm "$OUT/libraw_wrapper.o"
 
-echo "✔ rawkit done: $OUT/"
+ln -sfn "${OUT}" "${PROJECT_ROOT}/libs/windows_${ARCH}/current"
+echo "✔ rawkit done  (current → ${VERSION})"
