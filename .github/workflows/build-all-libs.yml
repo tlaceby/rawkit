@@ -5,6 +5,9 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+env:
+  VERSION: ${{ github.ref_name }}
+
 jobs:
   build:
     strategy:
@@ -18,12 +21,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+
     - uses: actions/checkout@v4
 
-    - run: echo "VERSION=${GITHUB_REF_NAME#refs/tags/}" >> "$GITHUB_ENV"
 
-    # --- Linux deps ----------------------------------------------
-    - if: ${{ matrix.os == 'ubuntu-latest' }}
+    - name: Install Linux build deps
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sudo apt-get update -qq
         sudo apt-get install -y build-essential zlib1g-dev
@@ -31,43 +34,40 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
         fi
 
-    # --- Windows deps (MSYS2) ------------------------------------
-    - if: ${{ matrix.os == 'windows-latest' }}
+
+    - name: Install MSYS2 toolchain
+      if: ${{ matrix.os == 'windows-latest' }}
       uses: msys2/setup-msys2@v2
       with:
         update: true
         install: >-
           git
+          make
           mingw-w64-x86_64-gcc
-          mingw-w64-x86_64-make
           mingw-w64-x86_64-pkgconf
           mingw-w64-x86_64-zlib
 
-    # --- build ---------------------------------------------------
-    # --- build on Windows (MSYS2) ---------------------------------
-    - name: Build rawkit (windows / ${{ matrix.arch }})
-      if: runner.os == 'Windows'
-      shell: msys2 {0}
-      run: |
-        bash scripts/build_windows_mingw.sh "$VERSION"
-
-    # --- build on everything else ---------------------------------
-    - name: Build rawkit (${{ runner.os }} / ${{ matrix.arch }})
+    - name: Build rawkit (${{ matrix.os }} • ${{ matrix.arch }})
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        case "${{ runner.os }}" in
-          Linux)  bash scripts/build_linux.sh  "$VERSION" "${{ matrix.arch }}";;
-          macOS)  bash scripts/build_darwin.sh "$VERSION" "${{ matrix.arch }}";;
+        case "${{ matrix.os }}" in
+          ubuntu*) bash scripts/build_linux.sh  "${VERSION}" "${{ matrix.arch }}";;
+          macos*)  bash scripts/build_darwin.sh "${VERSION}" "${{ matrix.arch }}";;
         esac
+
+
+    - name: Build rawkit (windows • ${{ matrix.arch }})
+      if: runner.os == 'Windows'
+      shell: msys2 {0}
+      run: |
+        bash scripts/build_windows_mingw.sh "${VERSION}"
 
     - uses: actions/upload-artifact@v4
       with:
         name: libs-${{ matrix.os }}-${{ matrix.arch }}
-        path: libs/**/$VERSION/libraw*.a
-# -------------------------------------------------------------------------
-# After all build jobs succeed → re-assemble & publish release
-# -------------------------------------------------------------------------
+        path: libs/**/${{ env.VERSION }}/libraw*.a
+
   release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
@@ -79,14 +79,13 @@ jobs:
           path: dist
 
       - name: Re-assemble repo hierarchy
+        shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#refs/tags/}"
-          for f in $(find dist -name 'libraw*.a'); do
-            # dist/libs-ubuntu-latest-amd64/libraw.a
-            dir=$(dirname "$f")
-            osarch=${dir#dist/libs-}           # ubuntu-latest-amd64
-            os=${osarch%-latest-*}             # ubuntu
-            arch=${osarch##*-}                 # amd64
+          for f in dist/**/libraw*.a; do
+            dir=$(dirname "$f")                 # dist/libs-ubuntu-latest-amd64
+            osarch=${dir#dist/libs-}            # ubuntu-latest-amd64
+            os=${osarch%-latest-*}              # ubuntu
+            arch=${osarch##*-}                  # amd64
             tgt="libs/${os}_${arch}/${VERSION}"
             mkdir -p "$tgt"
             cp "$f" "$tgt/"
@@ -97,10 +96,10 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
-          commit_message: "chore: update static libs for ${GITHUB_REF_NAME}"
+          commit_message: "chore: update static libs for ${VERSION}"
           file_pattern: |
             libs/*/*/current
-            libs/*/*/${{ github.ref_name }}/libraw*.a
+            libs/*/*/${{ env.VERSION }}/libraw*.a
 
       - name: Upload static libs to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -108,8 +107,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: RawKit ${{ github.ref_name }}
           files: |
-            libs/linux_amd64/${{ github.ref_name }}/libraw*.a
-            libs/linux_arm64/${{ github.ref_name }}/libraw*.a
-            libs/darwin_amd64/${{ github.ref_name }}/libraw*.a
-            libs/darwin_arm64/${{ github.ref_name }}/libraw*.a
-            libs/windows_amd64/${{ github.ref_name }}/libraw*.a
+            libs/linux_amd64/${{ env.VERSION }}/libraw*.a
+            libs/linux_arm64/${{ env.VERSION }}/libraw*.a
+            libs/darwin_amd64/${{ env.VERSION }}/libraw*.a
+            libs/darwin_arm64/${{ env.VERSION }}/libraw*.a
+            libs/windows_amd64/${{ env.VERSION }}/libraw*.a
