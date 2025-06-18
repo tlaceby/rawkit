@@ -1,2 +1,2 @@
-libs/*/*/v*/    # <- ignore the whole version folder
-!libs/*/*/current/   # but keep the 'current' symlink that Go/cgo needs
+libs/*
+!libs/*/*/current
