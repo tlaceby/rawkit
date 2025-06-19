@@ -58,18 +58,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ bring repo (with .git) into workspace
+      # bring repo (with .git) into workspace
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           clean: false
 
-      # 2️⃣ download artefacts from matrix builds
+      # download artefacts from matrix builds
       - uses: actions/download-artifact@v4
         with:
           path: dist
 
-      # 3️⃣ re-assemble libs/ tree, fail if nothing found
+      # re-assemble libs/ tree, fail if nothing found
       - name: Re-assemble repo hierarchy
         shell: bash
         run: |
@@ -100,18 +100,18 @@ jobs:
             exit 1
           fi
 
-      # 4️⃣ commit only current/ folders
+      # commit only current/ folders
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: "chore: update static libs for ${VERSION}"
-          file_pattern: libs/*/*/current/*
+          file_pattern: libs/*/current/**
           add_options: '-f'
 
-      # 5️⃣ upload all current/ libs as release assets (glob)
+      # upload all current/ libs as release assets (glob)
       - name: Upload static libs to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: RawKit ${{ github.ref_name }}
-          files: libs/*/*/current/libraw*.a
+          files: libs/*/current/**

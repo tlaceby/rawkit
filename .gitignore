@@ -1,0 +1,4 @@
+libs/*
+!libs/*/
+!libs/*/current/
+!libs/*/current/**
