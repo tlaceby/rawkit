@@ -1,6 +1,12 @@
-# ignore all libs by default
+# Ignore everything in libs/ by default
 libs/*
 
+# Re-allow every OS/arch platform directory (linux_amd64, darwin_arm64, …)
+!libs/*/
+
+# Re-allow *current* and any version folder (v0.0.3, v1.2.0, …)
 !libs/*/*/current/
 !libs/*/*/current/**
-!libs/*/*/v*/**
+
+!libs/*/*/v*/          # the version folder itself
+!libs/*/*/v*/**        # everything inside it
