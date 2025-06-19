@@ -1,4 +1,5 @@
 name: rawkit • build static libs
+
 on:
   push:
     tags: ['v*']
@@ -8,14 +9,14 @@ env:
   VERSION: ${{ github.ref_name }}
 
 jobs:
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────
 # Build matrix (Linux + macOS)
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────
   build:
     strategy:
       fail-fast: false
       matrix:
-        os:   [ubuntu-latest, macos-latest]   # , windows-latest
+        os:   [ubuntu-latest, macos-latest]        # , windows-latest
         arch: [amd64, arm64]
     runs-on: ${{ matrix.os }}
 
@@ -42,78 +43,74 @@ jobs:
             macos*)  bash scripts/build_darwin.sh "${VERSION}" "${{ matrix.arch }}";;
           esac
 
-      # Upload artefacts
+      # Upload artefact for this OS/arch
       - uses: actions/upload-artifact@v4
         with:
           name: libs-${{ matrix.os }}-${{ matrix.arch }}
           path: libs/**/${{ env.VERSION }}/libraw*.a
 
-# ──────────────────────────────────────────────
-# Release job
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────
+# Release job (single run after all matrix builds)
+# ──────────────────────────────────────────────────────────────
   release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ bring repo (with .git) into workspace
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           clean: false
 
+      # 2️⃣ download artefacts from matrix builds
       - uses: actions/download-artifact@v4
         with:
           path: dist
 
+      # 3️⃣ re-assemble libs/ tree, fail if nothing found
       - name: Re-assemble repo hierarchy
         shell: bash
         run: |
+          set -e
           shopt -s globstar nullglob
+          count=0
           for f in dist/**/libraw*.a; do
-            # dist/libs-ubuntu-latest-amd64 -> ubuntu-latest-amd64
-            osarch=${f#dist/libs-}
-            osarch=${osarch%%/*}
-            os=${osarch%-latest-*}          # ubuntu | macos
-            arch=${osarch##*-}              # amd64 | arm64
+            echo "• found $f"
+            count=$((count+1))
 
-            # map to directory names used by CGO
-            case "$os" in
-              ubuntu) os=linux ;;
-              macos)  os=darwin ;;
-            esac
+            # turn 'dist/libs-ubuntu-latest-amd64/…' into linux_amd64
+            osarch=${f#dist/libs-}
+            osarch=${osarch%%/*}            # ubuntu-latest-amd64
+            os=${osarch%-latest-*}          # ubuntu | macos
+            arch=${osarch##*-}              # amd64  | arm64
+            [[ $os == ubuntu ]] && os=linux
+            [[ $os == macos  ]] && os=darwin
 
             version_dir="libs/${os}_${arch}/${VERSION}"
             current_dir="libs/${os}_${arch}/current"
-
             mkdir -p "$version_dir" "$current_dir"
             cp "$f" "$version_dir/"
             cp "$f" "$current_dir/"
           done
 
+          if [[ $count -eq 0 ]]; then
+            echo "‼️  No artefacts copied; aborting release."
+            exit 1
+          fi
+
+      # 4️⃣ commit only current/ folders
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: "chore: update static libs for ${VERSION}"
-          file_pattern: |
-            libs/*/*/current
+          file_pattern: libs/*/*/current/**        # only current/
 
+      # 5️⃣ upload all current/ libs as release assets (glob)
       - name: Upload static libs to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: RawKit ${{ github.ref_name }}
-          files: |
-            libs/linux_amd64/current/libraw.a#libraw-linux-amd64.a
-            libs/linux_amd64/current/libraw_wrapper.a#libraw_wrapper-linux-amd64.a
-            libs/linux_arm64/current/libraw.a#libraw-linux-arm64.a
-            libs/linux_arm64/current/libraw_wrapper.a#libraw_wrapper-linux-arm64.a
-            libs/darwin_amd64/current/libraw.a#libraw-darwin-amd64.a
-            libs/darwin_amd64/current/libraw_wrapper.a#libraw_wrapper-darwin-amd64.a
-            libs/darwin_arm64/current/libraw.a#libraw-darwin-arm64.a
-            libs/darwin_arm64/current/libraw_wrapper.a#libraw_wrapper-darwin-arm64.a
-          # Windows uploads will be added later:
-          # libs/windows_amd64/current/libraw.a#libraw-windows-amd64.a
-          # libs/windows_amd64/current/libraw_wrapper.a#libraw_wrapper-windows-amd64.a
-
-            
+          files: libs/*/*/current/libraw*.a
