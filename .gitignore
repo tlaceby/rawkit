@@ -8,5 +8,5 @@ libs/*
 !libs/*/*/current/
 !libs/*/*/current/**
 
-!libs/*/*/v*/          # the version folder itself
-!libs/*/*/v*/**        # everything inside it
+libs/*/*/v*/
+libs/*/*/v*/**
