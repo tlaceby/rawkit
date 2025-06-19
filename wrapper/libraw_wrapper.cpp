@@ -73,6 +73,5 @@ extern "C" RawKitImage* rawkit_load(const char* filepath) {
     lr.dcraw_clear_mem(img);
     lr.recycle();
 
-    fprintf(stderr, "hello world\n");
     return rki;
 }
