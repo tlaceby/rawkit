@@ -58,5 +58,9 @@ ${HOST}-g++ -std=c++17 -O3 \
 ${HOST}-ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
 rm "$OUT/libraw_wrapper.o"
 
-ln -sfn "${OUT}" "${PROJECT_ROOT}/libs/linux_${ARCH}/current"
+CURRENT_DIR="${PROJECT_ROOT}/libs/linux_${ARCH}/current"
+rm -rf "$CURRENT_DIR"
+mkdir -p "$CURRENT_DIR"
+cp "$OUT"/*.a "$CURRENT_DIR/"
+
 echo "✔ rawkit done  (current → ${VERSION})"
