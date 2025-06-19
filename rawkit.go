@@ -1,7 +1,5 @@
 package rawkit
 
-//go:generate bash scripts/ensure_current.sh
-
 /*
 #cgo darwin,arm64  LDFLAGS: -L${SRCDIR}/libs/darwin_arm64/current  -lraw_wrapper -lraw -lz -lm -lc++
 #cgo darwin,amd64  LDFLAGS: -L${SRCDIR}/libs/darwin_amd64/current  -lraw_wrapper -lraw -lz -lm -lc++

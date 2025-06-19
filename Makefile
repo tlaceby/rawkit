@@ -1,59 +1,62 @@
 # ------------------------------------------------------------
-#  rawkit — simplified
+#  rawkit
+# ------------------------------------------------------------
+# make release  →  clean → build → test → bump VERSION → git tag (pushes to Github!!)
+# make verify   →  clean → build → test    (no version bump)
 # ------------------------------------------------------------
 
+UNAME_S       := $(shell uname -s)
 VERSION_FILE  := .env
 OLD_VER       := $(shell grep -E '^VERSION=' $(VERSION_FILE) | cut -d= -f2)
 
-.PHONY: release verify nextver clean ensure_current test bump
+.PHONY: release verify nextver bump clean build libs libs-current test
 
-# ----------------------------------------------------------------------------
-# make verify → clean → populate current/ → go test
-# ----------------------------------------------------------------------------
-verify: clean ensure_current test
-	@echo "✔ tests passed on current version $(OLD_VER)"
 
-# ----------------------------------------------------------------------------
-# make release → clean → populate current/ → go test → bump VERSION → git tag
-# ----------------------------------------------------------------------------
-release:
-	@go generate ./...
-	@make clean ensure_current test
+release: clean build test bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
-# ----------------------------------------------------------------------------
-# bump next version
-# ----------------------------------------------------------------------------
+
+verify: clean libs-current test
+	@echo "✔ tests passed on current version $(OLD_VER)"
+
+
 nextver:
 	$(eval NEW_VER := $(shell echo $(OLD_VER) | \
-	  awk -F. '{sub("v","",$$1); printf "v%d.%d.%d", $$1, $$2, $$3+1}'))
+	    awk -F. '{sub("v","",$$1); printf "v%d.%d.%d", $$1, $$2, $$3+1}'))
 	@echo "• next version will be $(NEW_VER)"
 
-# ----------------------------------------------------------------------------
-# drop out-of-date artefacts (but leave current/ scripts happy)
-# ----------------------------------------------------------------------------
+
 clean:
 	@echo "• cleaning artefacts"
-	@rm -rf libs/*/*/current include/libraw/* wrapper/*.o
+	@rm -rf libs/*/*/current libs/*/*/*/*.a include/libraw/* wrapper/*.o
 	@go clean -cache -testcache
 
-# ----------------------------------------------------------------------------
-# ensure libs/*/*/current is populated (build or fetch)
-# ----------------------------------------------------------------------------
-ensure_current:
-	@echo "• ensuring current/ libs are in place"
-	@bash scripts/ensure_current.sh
 
-# ----------------------------------------------------------------------------
-# run Go tests
-# ----------------------------------------------------------------------------
+build: nextver libs
+libs: nextver
+	@if [ "$(OS)" = "Windows_NT" ]; then \
+	    bash ./scripts/build_windows.sh $(NEW_VER); \
+	elif [ "$(UNAME_S)" = "Darwin" ]; then \
+	    bash ./scripts/build_darwin.sh $(NEW_VER); \
+	else \
+	    bash ./scripts/build_linux.sh  $(NEW_VER); \
+	fi
+
+libs-current:
+	@if [ "$(OS)" = "Windows_NT" ]; then \
+	    bash ./scripts/build_windows.sh $(OLD_VER); \
+	elif [ "$(UNAME_S)" = "Darwin" ]; then \
+	    bash ./scripts/build_darwin.sh $(OLD_VER); \
+	else \
+	    bash ./scripts/build_linux.sh  $(OLD_VER); \
+	fi
+
+
 test:
 	@echo "• running go tests"
 	@go test -v ./...
 
-# ----------------------------------------------------------------------------
-# bump VERSION in .env, commit & tag
-# ----------------------------------------------------------------------------
+
 bump: nextver
 	@echo "• writing VERSION=$(NEW_VER) to $(VERSION_FILE)"
 	@sed -Ei.bak 's/^VERSION=.*/VERSION=$(NEW_VER)/' $(VERSION_FILE) && rm -f $(VERSION_FILE).bak
