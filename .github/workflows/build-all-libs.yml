@@ -105,7 +105,8 @@ jobs:
         with:
           branch: main
           commit_message: "chore: update static libs for ${VERSION}"
-          file_pattern: libs/*/*/current/**        # only current/
+          file_pattern: libs/*/*/current/**
+          add_options: '-f'
 
       # 5️⃣ upload all current/ libs as release assets (glob)
       - name: Upload static libs to GitHub Release
