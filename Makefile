@@ -18,7 +18,7 @@ verify: clean ensure_current test
 # ----------------------------------------------------------------------------
 release:
 	@go generate ./...
-	@make clean libs-current test
+	@make clean ensure_current test
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 # ----------------------------------------------------------------------------
