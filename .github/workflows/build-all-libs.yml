@@ -114,4 +114,13 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: RawKit ${{ github.ref_name }}
-          files: libs/*/current/**
+          files: |
+            libs/linux_amd64/current/libraw.a#libraw-linux-amd64.a
+            libs/linux_amd64/current/libraw_wrapper.a#libraw_wrapper-linux-amd64.a
+            libs/linux_arm64/current/libraw.a#libraw-linux-arm64.a
+            libs/linux_arm64/current/libraw_wrapper.a#libraw_wrapper-linux-arm64.a
+            libs/darwin_amd64/current/libraw.a#libraw-darwin-amd64.a
+            libs/darwin_amd64/current/libraw_wrapper.a#libraw_wrapper-darwin-amd64.a
+            libs/darwin_arm64/current/libraw.a#libraw-darwin-arm64.a
+            libs/darwin_arm64/current/libraw_wrapper.a#libraw_wrapper-darwin-arm64.a
+
