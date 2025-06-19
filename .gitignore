@@ -1,2 +1,6 @@
+# ignore all libs by default
 libs/*
-!libs/*/*/current
+
+!libs/*/*/current/
+!libs/*/*/current/**
+!libs/*/*/v*/**
