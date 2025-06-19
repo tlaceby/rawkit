@@ -72,6 +72,8 @@ make release
 ### Per-platform scripts
 
 ```bash
+go generate ./...
+
 # macOS (Intel or Apple Silicon)
 bash scripts/build_darwin.sh  vX.Y.Z  [arm64|amd64]
 

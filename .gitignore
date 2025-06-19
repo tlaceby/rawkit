@@ -1,4 +1,9 @@
+# Ignore everything in libs/
 libs/*
+
+# Allow each platform directory (darwin_arm64, linux_amd64, etc.)
 !libs/*/
+
+# Allow the `current` symlink or folder inside each
 !libs/*/current/
 !libs/*/current/**
