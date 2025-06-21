@@ -1,1 +1,1 @@
-libs/*/current/libraw*.a merge=theirs
+libs/*/*/libraw*.a merge=theirs
