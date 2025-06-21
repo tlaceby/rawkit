@@ -63,7 +63,7 @@ test:
 bump: nextver
 	@echo "• writing VERSION=$(NEW_VER) to $(VERSION_FILE)"
 	@sed -Ei.bak 's/^VERSION=.*/VERSION=$(NEW_VER)/' $(VERSION_FILE) && rm -f $(VERSION_FILE).bak
-	@git add $(VERSION_FILE)
+	@git add $(VERSION_FILE) docs.md
 	@git commit -m "release $(NEW_VER)"
 	@git tag -a $(NEW_VER) -m "RawKit $(NEW_VER)"
 	@git push origin HEAD:main --follow-tags
