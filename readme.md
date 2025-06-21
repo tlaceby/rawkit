@@ -1,7 +1,3 @@
-Here's your polished and reordered README with the **Building** section moved *after* **Extending**, along with minor grammar, clarity, and formatting improvements to make it production-ready:
-
----
-
 # RawKit
 
 **Rawkit** is a tiny CGO wrapper around **[LibRaw](https://www.libraw.org/)** that lets Go programs open and manipulate RAW image files **without** needing a C compiler or external dependencies. Rawkit provides a simple yet stable API for working with RAW image formats — letting you do powerful things directly in Go.
