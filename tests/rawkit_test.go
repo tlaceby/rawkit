@@ -55,7 +55,7 @@ func TestOpeningTreeLarge(t *testing.T) {
 
 	for y := 0; y < img.Height; y++ {
 		for x := 0; x < img.Width; x++ {
-			i := (y*img.Width + x) * img.Channels
+			i := (y*img.Width + x) * img.Colors
 			r := uint8(img.Buffer[i+0] >> 8)
 			g := uint8(img.Buffer[i+1] >> 8)
 			b := uint8(img.Buffer[i+2] >> 8)

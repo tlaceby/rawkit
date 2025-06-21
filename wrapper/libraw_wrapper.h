@@ -1,14 +1,37 @@
 #pragma once
 #include <stdint.h>
+#include <sys/types.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct RawKitImage {
-    uint16_t *buffer;   // stored as packed pixels (16-bit)
-    int       width;
-    int       height;
-    int       channels; // 1 = CFA/raw, 3 = RGB (default is 3)
+  const char* format;
+  uint16_t *buffer;   // stored as packed pixels (16-bit)
+  ushort       width;       // Size of visible ("meaningful") part of the image (without the frame).
+  ushort       height;
+
+  int colors; // 1 = CFA/raw, 3 = RGB (default is 3)
+  int flip; // Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise). 
+
+  int asShotWBApplied; // Set to 1 if WB already applied in camera (multishot modes; small raw)
+  unsigned rawBitsPerPixel;
+  unsigned rawCount;
+  unsigned dngVersion;
+  // const char* colorSpace;
+
+  float iso;
+  float shutterSpeed;
+  float aperature;
+  float focalLength;
+  char artist[64];
+
+  char cameraMake[64];
+  char cameraModel[64];
+  char cameraNormalizedMake[64];
+  char cameraNormalizedModel[64];
+  char cameraSoftware[64];
+
 } RawKitImage;
 
 /**
