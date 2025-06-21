@@ -17,6 +17,9 @@ import (
 */
 import "C"
 
+// LoadRAW opens and decodes a RAW image file at the given path using LibRaw.
+// It returns a fully populated *RawKitImage struct containing pixel data and metadata.
+// Returns an error if decoding fails or if the file is unsupported.
 func LoadRAW(path string) (*RawKitImage, error) {
 	cpath := C.CString(path)
 	defer C.free(unsafe.Pointer(cpath))
@@ -60,13 +63,19 @@ func LoadRAW(path string) (*RawKitImage, error) {
 	}
 
 	C.rawkit_free(out)
+	fmt.Printf("camera make: %s\n", img.CameraMake)
+	fmt.Printf("camera model: %s\n", img.CameraModel)
+	fmt.Printf("camera norm make: %s\n", img.CameraNormalizedMake)
+	fmt.Printf("software: %s\n", img.CameraSoftware)
 	return img, nil
 }
 
+// LibRawVersionNum returns the numeric version of the linked LibRaw library.
 func LibRawVersionNum() int {
 	return int(C.rawkit_libraw_version_num())
 }
 
+// LibRawVersionStr returns the human-readable version string of the linked LibRaw library.
 func LibRawVersionStr() string {
 	return C.GoString(C.rawkit_libraw_version_str())
 }

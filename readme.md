@@ -1,15 +1,22 @@
+Here's your polished and reordered README with the **Building** section moved *after* **Extending**, along with minor grammar, clarity, and formatting improvements to make it production-ready:
+
+---
 
 # RawKit
 
-**Rawkit** is a tiny CGO wrapper around **[LibRaw](https://www.libraw.org/)**, that lets Go programs open RAW and manipulate RAW files **without** the need for a C compiler or external dependecies.  Rawkit provides a simple yet stable API which works with RAW image file formats. Allowing you to do powerful things right from the Go language.
+**Rawkit** is a tiny CGO wrapper around **[LibRaw](https://www.libraw.org/)** that lets Go programs open and manipulate RAW image files **without** needing a C compiler or external dependencies. Rawkit provides a simple yet stable API for working with RAW image formats — letting you do powerful things directly in Go.
 
 ---
 
 ## ✨ Quick Start
-To get started with **rawkit**, simple install it with the built in go tooling. You dont need to install **LibRaw**.
+
+To get started with **rawkit**, install it using Go tooling. You **do not** need to install LibRaw or a C++ compiler — rawkit is fully bundled and statically compiled.
+
 ```bash
-    go get github.com/tlaceby/rawkit@latest
+go get github.com/tlaceby/rawkit@latest
 ```
+
+### 🚀 Load and Inspect RAW Metadata
 
 ```go
 package main
@@ -25,93 +32,153 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%dx%d  %d-channel  %d samples\n",img.Width, img.Height, img.Channels, len(img.Buffer)) // channels --> (1: RAW, 3: RGB)
+	fmt.Printf("Image: %dx%d | Channels: %d | Buffer Size: %d\n", img.Width, img.Height, img.Colors, len(img.Buffer))
+	fmt.Println("Camera:", img.CameraMake, img.CameraModel)
+	fmt.Println("Lens:", img.FocalLength, "mm  f/", img.Aperature)
+	fmt.Println("Exposure:", img.ShutterSpeed, "sec  ISO", img.ISO)
+	fmt.Println("Color Space:", img.ColorSpace)
+	fmt.Println("Artist:", img.Artist)
 	fmt.Println("LibRaw Version:", rawkit.LibRawVersionStr())
 }
 ```
 
----
+### 🧠 Extracted Metadata Includes
 
+* 📸 **Camera Make & Model**: `img.CameraMake`, `img.CameraModel`
+* 🎨 **Color Space**: `img.ColorSpace` (e.g., sRGB, Adobe)
+* 🧑‍🎨 **Artist Field**: `img.Artist`
+* 🌅 **Exposure Settings**:
+
+  * `img.ShutterSpeed` (sec)
+  * `img.Aperature` (f/stop)
+  * `img.FocalLength` (mm)
+  * `img.ISO`
+* 🧩 **DNG Info & RAW Count**: `img.DNGVersion`, `img.RawCount`
+* 📐 **Image Orientation**: `img.Flip` (0, 3, 5, or 6)
+* ✅ **White Balance Applied**: `img.AsShotWBApplied` (0 or 1)
+
+All pixel data is accessible in `img.Buffer`, a `[]uint16` representing unpacked pixels in **channel-major** order. Perfect for custom RAW processing, histogram generation, or astrophotography pipelines.
+
+---
 
 ## 📚 Table of Contents
 
-1. [Core API](#core-api)
-2. [Building / Re-building Binaries](#building--re-building-binaries)
-3. [Extending RawKit](#extending-rawkit)
-4. [Contributing](#contributing)
+1. [Go API Documentation](./docs.md)
+2. [Contributing](#-contributing)
+3. [Extending RawKit](#-extending-rawkit)
+4. [Building RawKit](#-building--re-building-binaries)
 
 ---
 
-## Core API
+## 🤝 Contributing
 
-| Function             | Description                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `LoadRAW(path)`      | Opens a RAW file and returns:<br>`*RawKitImage` containing `Buffer []uint16`, `Width`, `Height`, `Channels`. |
-| `LibRawVersionNum()` | Numeric version `0xMMmmpp`.                                                                                  |
-| `LibRawVersionStr()` | Human string, e.g. `0.22.0-Release`.                                                                         |
+**Rawkit** was built to power a larger astrophotography application. While its scope is intentionally minimal, I welcome contributions from others who want to extend or improve it.
 
-All LibRaw allocations are released inside the wrapper; the returned Go slice is fully owned by the caller.
+* **Bug reports / feature requests** — open an issue with steps to reproduce.
+* **Pull requests**
 
----
+  1. Fork → branch → commit (ensure `go test ./...` passes).
+  2. Run `make release` — the version bump only applies if tests pass.
+  3. Open a PR — GitHub Actions will run the same build pipeline.
+* **Code style**
 
-## 🔨 Building / Re-building Binaries
+  * Use idiomatic Go (`gofmt`, `go vet`, etc.).
+  * Keep C++ code minimal (C++17 or below).
+* **Test assets**
 
-### One-shot pipeline
-
-```bash
-make release
-```
-
-| Phase     | What happens                                              |
-| --------- | --------------------------------------------------------- |
-| **clean** | Deletes old `.a` files & Go cache                         |
-| **build** | Compiles LibRaw + wrapper for the **host** OS/arch        |
-| **test**  | Runs `go test ./...`                                      |
-| **bump**  | Writes next `VERSION=` to `.env` **only if tests passed** |
-
-### Per-platform scripts
-
-```bash
-go generate ./...
-
-# macOS (Intel or Apple Silicon)
-bash scripts/build_darwin.sh  vX.Y.Z  [arm64|amd64]
-
-# Linux
-bash scripts/build_linux.sh   vX.Y.Z  [amd64|arm64]
-
-# Windows (cross-build; needs mingw-w64)
-bash scripts/build_windows.sh vX.Y.Z
-```
-
-Each script builds into `libs/<os_arch>/<version>/` and then updates the
-symlink `libs/<os_arch>/current → <version>`.
+  * Don’t commit large RAW files. Use minimal test samples (<1MB) if needed.
 
 ---
 
 ## 🌱 Extending RawKit
 
-| Step         | Folder     | Action                                                      |
-| ------------ | ---------- | ----------------------------------------------------------- |
-| **1 Bridge** | `wrapper/` | Add an `extern "C"` function in `libraw_wrapper.cpp/.h`.    |
-| **2 Expose** | `rawkit/`  | Declare the symbol in a Go file’s cgo preamble and wrap it. |
-| **3 Test**   | `tests/`   | Add/extend `*_test.go`; place samples in `tests/testdata/`. |
-| **4 Verify** | repo root  | `make release` — builds, tests, bumps version.              |
+Want to expose new metadata or functionality? Here's the step-by-step workflow:
 
-> **Tip:** add new fields to existing structs instead of changing old ones to stay backward-compatible.
+| Step          | Folder     | Description                                                          |
+| ------------- | ---------- | -------------------------------------------------------------------- |
+| **1. Bridge** | `wrapper/` | Add a new `extern "C"` function to `libraw_wrapper.cpp/.h`.          |
+| **2. Expose** | `rawkit/`  | Declare the function in a CGO preamble, and wrap it in idiomatic Go. |
+| **3. Test**   | `tests/`   | Add a Go test and put test files in `tests/testdata/`.               |
+| **4. Verify** | repo root  | Run `make release` to build, test, and bump the version.             |
+
+> 💡 **Tip:** Add new fields instead of modifying existing ones to maintain backward compatibility.
+
+---
+It looks very solid — the structure and content are clear, and your tone is friendly but technical. I’ve made some light edits for **grammar, clarity, formatting**, and **professional polish** without changing your intent or personality:
 
 ---
 
-## 🤝 Contributing
-My goal for **rawkit** is simple: Use it with other astrophotography application I am writing. I dont need much functionality from ImageRaw as I am writing the rest myself, but if anyone wants to make a pull request or keep this repositiory updated with feature requests, I am happy to continue the work as long as the API remains stable.
+## 🔨 Building / Re-building Binaries
 
-* **Bug reports / feature requests** – open an issue with steps to reproduce.
-* **Pull requests**
+> 🛠️ Only needed for contributors — precompiled binaries are included for all major platforms.
 
-  1. Fork → branch → commit (ensure `go test ./...` is green).
-  2. Run `make release` locally; the version bump only lands if tests pass.
-  3. Open a PR – GitHub Actions runs the same pipeline.
-* **Style** – idiomatic Go (`gofmt`), minimal C++17 in the wrapper.
-* **Large RAW assets** – dont! :)
+### 🚧 Development Builds
+
+```bash
+make verify
+```
+
+Use this during development and testing. It:
+
+* Builds native dependencies
+* Regenerates all CGO bindings
+* Recompiles the wrapper modules
+* Runs `go test ./...` to ensure stability
+
+This is the recommended way to validate changes before finalizing a release.
 
 ---
+
+### 🚀 Releasing a New Version
+
+```bash
+make release
+```
+
+This runs the full pipeline:
+
+| Phase   | Description                                               |
+| ------- | --------------------------------------------------------- |
+| `clean` | Deletes old `.a` files and Go build cache                 |
+| `build` | Compiles LibRaw and the wrapper for your **host OS/arch** |
+| `test`  | Runs `go test ./...`                                      |
+| `bump`  | Writes a new `VERSION=` to `.env` if tests pass           |
+
+Once development is complete, `make release` finalizes the version bump in `.env` and commits the changes. When pushed to GitHub, this triggers the CI workflow, which builds binaries for:
+
+* 🐧 Linux (amd64 + arm64)
+* 🪟 Windows (amd64) ---> Not yet Supported/Tested (TODO)
+* 🍎 macOS (amd64 + arm64)
+
+---
+
+### ⚙️ Platform-Specific Scripts
+
+Use these for targeted builds or cross-compilation:
+
+```bash
+go generate ./...
+
+# macOS (Intel or Apple Silicon)
+bash scripts/build_darwin.sh   vX.Y.Z  [arm64|amd64]
+
+# Linux
+bash scripts/build_linux.sh    vX.Y.Z  [amd64|arm64]
+
+# Windows (cross-build, requires mingw-w64)  <-- Not yet included in GitHub Actions. The windows build process is completely untested
+bash scripts/build_windows.sh  vX.Y.Z
+```
+
+Each script creates:
+
+```
+libs/<os_arch>/<version>/libraw_wrapper.a
+```
+
+And updates the symlink:
+
+```
+libs/<os_arch>/current → <version>
+```
+
+This structure ensures consistent versioning and `cgo` compatibility across builds.

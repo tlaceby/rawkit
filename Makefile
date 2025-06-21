@@ -13,10 +13,12 @@ OLD_VER       := $(shell grep -E '^VERSION=' $(VERSION_FILE) | cut -d= -f2)
 
 
 release: clean build test bump
+	gomarkdoc ./ >> docs.md
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 
 verify: clean libs-current test
+	gomarkdoc ./ >> docs.md
 	@echo "✔ tests passed on current version $(OLD_VER)"
 
 
@@ -28,6 +30,7 @@ nextver:
 
 clean:
 	@echo "• cleaning artefacts"
+	@rm -rf docs.md
 	@rm -rf libs/*/*/current libs/*/*/*/*.a include/libraw/* wrapper/*.o
 	@go clean -cache -testcache
 
