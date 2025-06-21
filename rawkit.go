@@ -63,10 +63,6 @@ func LoadRAW(path string) (*RawKitImage, error) {
 	}
 
 	C.rawkit_free(out)
-	fmt.Printf("camera make: %s\n", img.CameraMake)
-	fmt.Printf("camera model: %s\n", img.CameraModel)
-	fmt.Printf("camera norm make: %s\n", img.CameraNormalizedMake)
-	fmt.Printf("software: %s\n", img.CameraSoftware)
 	return img, nil
 }
 
