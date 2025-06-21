@@ -89,10 +89,7 @@ jobs:
             [[ $os == macos  ]] && os=darwin
 
             version_dir="libs/${os}_${arch}/${VERSION}"
-            current_dir="libs/${os}_${arch}/current"
-            mkdir -p "$version_dir" "$current_dir"
             cp "$f" "$version_dir/"
-            cp "$f" "$current_dir/"
           done
 
           if [[ $count -eq 0 ]]; then
@@ -100,27 +97,42 @@ jobs:
             exit 1
           fi
 
-      # commit only current/ folders
+      # Generate link_*.go files for this versions
+      - name: Generate link files
+        shell: bash
+        run: |
+          bash ./scripts/gen_link_files.sh ${VERSION}
+
+      # auto commit link files
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: "chore: update static libs for ${VERSION}"
-          file_pattern: libs/*/current/**
+          file_pattern: |
+            libs/*/${{ env.VERSION }}/**
+            link_*.go
           add_options: '-f'
 
-      # upload all current/ libs as release assets (glob)
+      # finish release
       - name: Upload static libs to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: RawKit ${{ github.ref_name }}
           files: |
-            libs/linux_amd64/current/libraw.a#libraw-linux-amd64.a
-            libs/linux_amd64/current/libraw_wrapper.a#libraw_wrapper-linux-amd64.a
-            libs/linux_arm64/current/libraw.a#libraw-linux-arm64.a
-            libs/linux_arm64/current/libraw_wrapper.a#libraw_wrapper-linux-arm64.a
-            libs/darwin_amd64/current/libraw.a#libraw-darwin-amd64.a
-            libs/darwin_amd64/current/libraw_wrapper.a#libraw_wrapper-darwin-amd64.a
-            libs/darwin_arm64/current/libraw.a#libraw-darwin-arm64.a
-            libs/darwin_arm64/current/libraw_wrapper.a#libraw_wrapper-darwin-arm64.a
+            libs/linux_amd64/${{ env.VERSION }}/libraw.a#libraw-linux-amd64.a
+            libs/linux_amd64/${{ env.VERSION }}/libraw_wrapper.a#libraw_wrapper-linux-amd64.a
+            libs/linux_arm64/${{ env.VERSION }}/libraw.a#libraw-linux-arm64.a
+            libs/linux_arm64/${{ env.VERSION }}/libraw_wrapper.a#libraw_wrapper-linux-arm64.a
+            libs/darwin_amd64/${{ env.VERSION }}/libraw.a#libraw-darwin-amd64.a
+            libs/darwin_amd64/${{ env.VERSION }}/libraw_wrapper.a#libraw_wrapper-darwin-amd64.a
+            libs/darwin_arm64/${{ env.VERSION }}/libraw.a#libraw-darwin-arm64.a
+            libs/darwin_arm64/${{ env.VERSION }}/libraw_wrapper.a#libraw_wrapper-darwin-arm64.a
+            link_darwin_amd64_${{ env.VERSION }}.go
+            link_darwin_arm64_${{ env.VERSION }}.go
+            link_linux_amd64_${{ env.VERSION }}.go
+            link_linux_arm64_${{ env.VERSION }}.go
+            link_windows_amd64_${{ env.VERSION }}.go
+
+
 

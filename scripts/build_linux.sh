@@ -1,66 +1,73 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # ------------------------------------------------------------
-# rawkit — build static LibRaw + wrapper for Linux targets
+# rawkit — build static LibRaw + wrapper for Linux
 # Usage:  ./scripts/build_linux.sh [VERSION] [ARCH]
-# Example: ./scripts/build_linux.sh v0.2.0 amd64
+#         VERSION defaults to .env VERSION or v0.0.1
+#         ARCH    defaults to uname -m (e.g., x86_64 or aarch64)
 # ------------------------------------------------------------
 
+# ---------- 0. Setup ----------------------------------------
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-if [[ -f "${PROJECT_ROOT}/.env" ]]; then
-  set -a; . "${PROJECT_ROOT}/.env"; set +a
+if [[ -f "$PROJECT_ROOT/.env" ]]; then
+  set -a
+  source "$PROJECT_ROOT/.env"
+  set +a
 fi
 
 VERSION="${1:-${VERSION:-v0.0.1}}"
-ARCH="${2:-amd64}"                 # amd64 | arm64
+ARCH_RAW="${2:-$(uname -m)}"
+
+if [[ "$ARCH_RAW" == "x86_64" ]]; then
+  ARCH="amd64"
+elif [[ "$ARCH_RAW" == "aarch64" ]]; then
+  ARCH="arm64"
+else
+  echo "✖ Unsupported architecture: $ARCH_RAW"
+  exit 1
+fi
+
 OUT="$PROJECT_ROOT/libs/linux_${ARCH}/${VERSION}"
+CURRENT="$PROJECT_ROOT/libs/linux_${ARCH}/current"
 WRAPPER_DIR="$PROJECT_ROOT/wrapper"
 INC_DIR="$PROJECT_ROOT/include/libraw"
 LIBRAW_DIR="$PROJECT_ROOT/LibRaw"
 
-echo "▶ Building rawkit for Linux ${ARCH} → ${OUT}"
 mkdir -p "$OUT" "$INC_DIR"
+echo "▶ Building rawkit for Linux $ARCH → $OUT"
 
-case "$ARCH" in
-  amd64) HOST="x86_64-linux-gnu" ;;
-  arm64) HOST="aarch64-linux-gnu" ;;
-  *) echo "✖ unknown arch $ARCH"; exit 1 ;;
-esac
+pushd "$LIBRAW_DIR" > /dev/null
 
-pushd "$LIBRAW_DIR" >/dev/null
 if [[ ! -f configure ]]; then
   echo "• Generating configure script"
   make -f Makefile.dist
 fi
+
 if [[ ! -f lib/libraw.a ]]; then
   echo "• Configuring LibRaw"
-  CC=${HOST}-gcc  CXX=${HOST}-g++  RANLIB=${HOST}-ranlib \
-  ./configure --host="$HOST" --disable-shared --enable-static CFLAGS="-O3"
+  ./configure --disable-shared --enable-static CFLAGS="-O3" > /dev/null
   echo "• Compiling LibRaw"
-  make -j"$(nproc || sysctl -n hw.ncpu 2>/dev/null || echo 1)"
+  make -j"$(nproc)" > /dev/null
+else
+  echo "• LibRaw already built — skipping"
 fi
-popd >/dev/null
+
+popd > /dev/null
 
 echo "• Syncing LibRaw headers"
 for h in "$LIBRAW_DIR"/libraw/*.h; do
-  dst="$INC_DIR/$(basename "$h")"
-  [[ ! -f "$dst" ]] || cmp -s "$h" "$dst" && continue
-  cp "$h" "$dst"
+  cp -u "$h" "$INC_DIR/"
 done
-cp "$LIBRAW_DIR/lib/libraw.a" "$OUT/"
+
+cp -u "$LIBRAW_DIR/lib/libraw.a" "$OUT/"
 
 echo "• Building libraw_wrapper.a"
-${HOST}-g++ -std=c++17 -O3 \
-  -I"$INC_DIR" -I"$LIBRAW_DIR/libraw" \
-  -c "$WRAPPER_DIR/libraw_wrapper.cpp" \
-  -o "$OUT/libraw_wrapper.o"
+g++ -std=c++17 -O3 \
+    -I"$INC_DIR" -I"$LIBRAW_DIR/libraw" \
+    -c "$WRAPPER_DIR/libraw_wrapper.cpp" \
+    -o "$OUT/libraw_wrapper.o"
 
-${HOST}-ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
+ar rcs "$OUT/libraw_wrapper.a" "$OUT/libraw_wrapper.o"
 rm "$OUT/libraw_wrapper.o"
 
-CURRENT_DIR="${PROJECT_ROOT}/libs/linux_${ARCH}/current"
-rm -rf "$CURRENT_DIR"
-mkdir -p "$CURRENT_DIR"
-cp "$OUT"/*.a "$CURRENT_DIR/"
-
-echo "✔ rawkit done  (current → ${VERSION})"
+echo "✔ rawkit build complete for $VERSION"

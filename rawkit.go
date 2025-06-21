@@ -7,11 +7,6 @@ import (
 )
 
 /*
-#cgo darwin,arm64  LDFLAGS: -L${SRCDIR}/libs/darwin_arm64/current  -lraw_wrapper -lraw -lz -lm -lc++
-#cgo darwin,amd64  LDFLAGS: -L${SRCDIR}/libs/darwin_amd64/current  -lraw_wrapper -lraw -lz -lm -lc++
-#cgo linux,amd64   LDFLAGS: -L${SRCDIR}/libs/linux_amd64/current   -lraw_wrapper -lraw -lz -lm -lstdc++
-#cgo linux,arm64   LDFLAGS: -L${SRCDIR}/libs/linux_arm64/current   -lraw_wrapper -lraw -lz -lm -lstdc++
-#cgo windows,amd64 LDFLAGS: -L${SRCDIR}/libs/windows_amd64/current -lraw_wrapper -lraw -lz -lstdc++
 #include <stdlib.h>
 #include "wrapper/libraw_wrapper.h"
 */

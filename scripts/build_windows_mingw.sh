@@ -57,9 +57,4 @@ ${HOST}-g++ -std=c++17 -O3 \
 ${HOST}-ar rcs "${OUT}/libraw_wrapper.a" "${OUT}/libraw_wrapper.o"
 rm "${OUT}/libraw_wrapper.o"
 
-echo "• Updating current/ directory"
-rm -rf "${CURRENT_DIR}"
-mkdir -p "${CURRENT_DIR}"
-cp "${OUT}"/*.a "${CURRENT_DIR}/"
-
 echo "✔ rawkit done  (current folder refreshed → ${VERSION})"
