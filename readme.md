@@ -100,9 +100,6 @@ Want to expose new metadata or functionality? Here's the step-by-step workflow:
 > 💡 **Tip:** Add new fields instead of modifying existing ones to maintain backward compatibility.
 
 ---
-It looks very solid — the structure and content are clear, and your tone is friendly but technical. I’ve made some light edits for **grammar, clarity, formatting**, and **professional polish** without changing your intent or personality:
-
----
 
 ## 🔨 Building / Re-building Binaries
 
