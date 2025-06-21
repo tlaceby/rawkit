@@ -12,8 +12,7 @@ OLD_VER       := $(shell grep -E '^VERSION=' $(VERSION_FILE) | cut -d= -f2)
 .PHONY: release verify nextver bump clean build libs libs-current test
 
 
-release: clean build test bump
-	gomarkdoc ./ >> docs.md
+release: verify bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 

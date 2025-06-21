@@ -1,5 +1,4 @@
 # RawKit
-
 **Rawkit** is a tiny CGO wrapper around **[LibRaw](https://www.libraw.org/)** that lets Go programs open and manipulate RAW image files **without** needing a C compiler or external dependencies. Rawkit provides a simple yet stable API for working with RAW image formats — letting you do powerful things directly in Go.
 
 ---
@@ -24,6 +23,7 @@ import (
 
 func main() {
 	img, err := rawkit.LoadRAW("example.ARW")
+
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,6 @@ func main() {
 	fmt.Println("Camera:", img.CameraMake, img.CameraModel)
 	fmt.Println("Lens:", img.FocalLength, "mm  f/", img.Aperature)
 	fmt.Println("Exposure:", img.ShutterSpeed, "sec  ISO", img.ISO)
-	fmt.Println("Color Space:", img.ColorSpace)
 	fmt.Println("Artist:", img.Artist)
 	fmt.Println("LibRaw Version:", rawkit.LibRawVersionStr())
 }
