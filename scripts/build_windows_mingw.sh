@@ -20,6 +20,8 @@ LIBRAW_DIR="${PROJECT_ROOT}/LibRaw"
 
 echo "▶ Building rawkit for Windows ${ARCH} → ${OUT}"
 mkdir -p "${OUT}" "${INC_DIR}"
+mkdir -p LibRaw/object
+mkdir -p LibRaw/bin
 
 # ── 1. build LibRaw ──────────────────────────────────────────
 pushd "${LIBRAW_DIR}" >/dev/null

@@ -54,9 +54,6 @@ libs: nextver
 	fi
 
 libs-current:
-	@mkdir -p LibRaw/object
-	@mkdir -p LibRaw/bin
-
 	@if [ "$(OS)" = "Windows_NT" ]; then \
 		bash ./scripts/build_windows.sh $(OLD_VER); \
 	elif [ "$(UNAME_S)" = "Darwin" ]; then \

@@ -22,6 +22,8 @@ WRAPPER_DIR="$PROJECT_ROOT/wrapper"
 INC_DIR="$PROJECT_ROOT/include/libraw"
 LIBRAW_DIR="$PROJECT_ROOT/LibRaw"
 
+mkdir -p LibRaw/object
+mkdir -p LibRaw/bin
 mkdir -p "$OUT" "$INC_DIR"
 echo "▶ Building rawkit for macOS $ARCH → $OUT"
 

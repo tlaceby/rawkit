@@ -8,6 +8,7 @@ set -euo pipefail
 # ------------------------------------------------------------
 
 # ---------- 0. Setup ----------------------------------------
+
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ -f "$PROJECT_ROOT/.env" ]]; then
   set -a
@@ -34,6 +35,8 @@ INC_DIR="$PROJECT_ROOT/include/libraw"
 LIBRAW_DIR="$PROJECT_ROOT/LibRaw"
 
 mkdir -p "$OUT" "$INC_DIR"
+mkdir -p LibRaw/object
+mkdir -p LibRaw/bin
 echo "▶ Building rawkit for Linux $ARCH → $OUT"
 
 pushd "$LIBRAW_DIR" > /dev/null
