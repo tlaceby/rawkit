@@ -19,6 +19,7 @@ release: verify generate-link-files bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 verify: clean libs-current generate-link-files test
+	@go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
 	@gomarkdoc ./ >> docs.md
 	@echo "✔ tests passed on current version $(OLD_VER)"
 

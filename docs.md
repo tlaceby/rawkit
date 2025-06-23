@@ -18,7 +18,7 @@ import "github.com/tlaceby/rawkit"
 
 
 <a name="LibRawVersionNum"></a>
-## func LibRawVersionNum
+## func [LibRawVersionNum](<https://github.com/tlaceby/rawkit/blob/main/rawkit.go#L65>)
 
 ```go
 func LibRawVersionNum() int
@@ -27,7 +27,7 @@ func LibRawVersionNum() int
 LibRawVersionNum returns the numeric version of the linked LibRaw library.
 
 <a name="LibRawVersionStr"></a>
-## func LibRawVersionStr
+## func [LibRawVersionStr](<https://github.com/tlaceby/rawkit/blob/main/rawkit.go#L70>)
 
 ```go
 func LibRawVersionStr() string
@@ -36,7 +36,7 @@ func LibRawVersionStr() string
 LibRawVersionStr returns the human\-readable version string of the linked LibRaw library.
 
 <a name="ColorSpace"></a>
-## type ColorSpace
+## type [ColorSpace](<https://github.com/tlaceby/rawkit/blob/main/types.go#L21>)
 
 ColorSpace describes the working color space of the image.
 
@@ -60,7 +60,7 @@ const (
 ```
 
 <a name="DriveMode"></a>
-## type DriveMode
+## type [DriveMode](<https://github.com/tlaceby/rawkit/blob/main/types.go#L35>)
 
 DriveMode represents the camera’s shooting mode \(single, continuous low/high\).
 
@@ -84,7 +84,7 @@ const (
 ```
 
 <a name="LibrawImageFormat"></a>
-## type LibrawImageFormat
+## type [LibrawImageFormat](<https://github.com/tlaceby/rawkit/blob/main/types.go#L4>)
 
 LibrawImageFormat represents the final output format of the decoded RAW image. Derived from the \`enum LibRaw\_image\_formats\`
 
@@ -111,7 +111,7 @@ const (
 ```
 
 <a name="RawKitImage"></a>
-## type RawKitImage
+## type [RawKitImage](<https://github.com/tlaceby/rawkit/blob/main/types.go#L49-L93>)
 
 Represents all LibRaw image data after processing. Contains image pixel data, camera and lens info, and colorspace data.
 
@@ -164,7 +164,7 @@ type RawKitImage struct {
 ```
 
 <a name="LoadRAW"></a>
-### func LoadRAW
+### func [LoadRAW](<https://github.com/tlaceby/rawkit/blob/main/rawkit.go#L18>)
 
 ```go
 func LoadRAW(path string) (*RawKitImage, error)
