@@ -80,17 +80,18 @@ jobs:
             echo "• found $f"
             count=$((count+1))
 
-            # turn 'dist/libs-ubuntu-latest-amd64/…' into linux_amd64
             osarch=${f#dist/libs-}
-            osarch=${osarch%%/*}            # ubuntu-latest-amd64
-            os=${osarch%-latest-*}          # ubuntu | macos
-            arch=${osarch##*-}              # amd64  | arm64
+            osarch=${osarch%%/*}
+            os=${osarch%-latest-*}
+            arch=${osarch##*-}
             [[ $os == ubuntu ]] && os=linux
             [[ $os == macos  ]] && os=darwin
 
             version_dir="libs/${os}_${arch}/${VERSION}"
+            mkdir -p "$version_dir"
             cp "$f" "$version_dir/"
           done
+
 
           if [[ $count -eq 0 ]]; then
             echo "‼️  No artefacts copied; aborting release."
