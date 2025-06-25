@@ -77,4 +77,5 @@ bump:
 	@git add -A
 	@git commit -m "release $(NEW_VER)"
 	@git tag -a $(NEW_VER) -m "RawKit $(NEW_VER)"
-	@git push origin HEAD:main --follow-tags
+	@git push origin HEAD:main
+	@git push origin $(NEW_VER)
