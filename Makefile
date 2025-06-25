@@ -15,7 +15,7 @@ LINK_FILES    := $(wildcard link_*.go)
 describe:
 	@echo "• rawkit version: $(OLD_VER)"
 
-release: verify generate-link-files bump
+release: verify nextver clean-link-files generate-link-files bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 verify: clean libs-current generate-link-files test
@@ -66,7 +66,7 @@ test:
 	@echo "• running go tests"
 	@go test -v ./...
 
-bump: nextver
+bump:
 	@echo "• writing VERSION=$(NEW_VER) to $(VERSION_FILE)"
 	@sed -Ei.bak 's/^VERSION=.*/VERSION=$(NEW_VER)/' $(VERSION_FILE) && rm -f $(VERSION_FILE).bak
 	@git add $(VERSION_FILE) docs.md $(LINK_FILES)

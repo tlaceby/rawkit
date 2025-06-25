@@ -17,7 +17,7 @@ if [[ -f "$PROJECT_ROOT/.env" ]]; then
 fi
 
 VERSION="${1:-${VERSION:-v0.0.1}}"
-ARCH_RAW="${2:-$(uname -m)}"
+ARCH="${2:-$(uname -m)}"
 OUT="$PROJECT_ROOT/libs/linux_${ARCH}/${VERSION}"
 CURRENT="$PROJECT_ROOT/libs/linux_${ARCH}/current"
 WRAPPER_DIR="$PROJECT_ROOT/wrapper"
