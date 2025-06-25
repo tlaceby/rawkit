@@ -18,16 +18,6 @@ fi
 
 VERSION="${1:-${VERSION:-v0.0.1}}"
 ARCH_RAW="${2:-$(uname -m)}"
-
-if [[ "$ARCH_RAW" == "x86_64" ]]; then
-  ARCH="amd64"
-elif [[ "$ARCH_RAW" == "aarch64" ]]; then
-  ARCH="arm64"
-else
-  echo "✖ Unsupported architecture: $ARCH_RAW"
-  exit 1
-fi
-
 OUT="$PROJECT_ROOT/libs/linux_${ARCH}/${VERSION}"
 CURRENT="$PROJECT_ROOT/libs/linux_${ARCH}/current"
 WRAPPER_DIR="$PROJECT_ROOT/wrapper"
