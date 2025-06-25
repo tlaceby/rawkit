@@ -72,7 +72,7 @@ bump:
 	@test -n "$(NEW_VER)" || (echo "NEW_VER is not set" && exit 1)
 	@echo "• writing VERSION=$(NEW_VER) to $(VERSION_FILE)"
 	@sed -Ei.bak 's/^VERSION=.*/VERSION=$(NEW_VER)/' $(VERSION_FILE) && rm -f $(VERSION_FILE).bak
-	@git add -A $(VERSION_FILE) docs.md
+	@git add -A
 	@git commit -m "release $(NEW_VER)"
 	@git tag -a $(NEW_VER) -m "RawKit $(NEW_VER)"
 	@git push origin HEAD:main --follow-tags
