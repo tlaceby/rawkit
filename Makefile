@@ -15,10 +15,12 @@ LINK_FILES    = $(wildcard link_*.go)
 describe:
 	@echo "• rawkit version: $(OLD_VER)"
 
-release: nextver verify clean-link-files
+release: nextver clean-link-files verify
+	@$(MAKE) clean-link-files
 	@$(MAKE) VER=$(NEW_VER) generate-link-files
 	@$(MAKE) NEW_VER=$(NEW_VER) bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
+
 
 verify: clean libs-current generate-link-files test
 	@go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
