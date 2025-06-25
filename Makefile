@@ -17,7 +17,7 @@ describe:
 
 release: nextver verify clean-link-files
 	@$(MAKE) VER=$(NEW_VER) generate-link-files
-	@$(MAKE) bump
+	@$(MAKE) NEW_VER=$(NEW_VER) bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 verify: clean libs-current generate-link-files test
@@ -69,6 +69,7 @@ test:
 	@go test -v ./...
 
 bump:
+	@test -n "$(NEW_VER)" || (echo "NEW_VER is not set" && exit 1)
 	@echo "• writing VERSION=$(NEW_VER) to $(VERSION_FILE)"
 	@sed -Ei.bak 's/^VERSION=.*/VERSION=$(NEW_VER)/' $(VERSION_FILE) && rm -f $(VERSION_FILE).bak
 	@git add $(VERSION_FILE) docs.md $(LINK_FILES)
