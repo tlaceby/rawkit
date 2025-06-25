@@ -1,5 +1,7 @@
 package rawkit
 
+import "image"
+
 // LibrawImageFormat represents the final output format of the decoded RAW image. Derived from the `enum LibRaw_image_formats`
 type LibrawImageFormat string
 
@@ -45,18 +47,26 @@ const (
 	LIBRAW_DRIVEMODE_CONTINUOUS_HIGH DriveMode = "ContinuousHigh"
 )
 
+// ThumbnailKind represents the type of image format used for the thumbnail.
+type ThumbnailKind string
+
+const (
+	// THUMBNAIL_JPEG represents a .jpeg thumbnail format.
+	THUMBNAIL_JPEG ThumbnailKind = "jpeg"
+
+	// THUMBNAIL_PNG represents a .png thumbnail format.
+	THUMBNAIL_PNG ThumbnailKind = "png"
+
+	// THUMBNAIL_TIFF represents a .tiff thumbnail format.
+	THUMBNAIL_TIFF ThumbnailKind = "tiff"
+)
+
 // Represents all LibRaw image data after processing. Contains image pixel data, camera and lens info, and colorspace data.
 type RawKitImage struct {
 	// LibRaw image format (jpeg, jpegxl, bitmap, h265)
 	Format LibrawImageFormat
-	// stored as packed pixels (16-bit)
-	Buffer []uint16
-	// Size of visible ("meaningful") part of the image (without the frame).
-	Width int
-	// Size of visible ("meaningful") part of the image (without the frame).
-	Height int
-	// (1=CFA/RAW - 3=RGB)
-	Colors int
+	// Common Raw data Fields
+	Image *Image
 	// Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
 	Flip int
 	// Set to 1 if WB already applied in camera (multishot modes; small raw)
@@ -91,3 +101,26 @@ type RawKitImage struct {
 	// Camera Software (eg: ILCE-6400 v2.002025:02:09 19:19:12 xxxxxxxxxx xxxxxxxxxxxx)
 	CameraSoftware string
 }
+
+// Image is is the most basic data used to do manipulations
+type Image struct {
+	// stored as packed pixels (16-bit)
+	Buffer []uint16
+	// Size of visible ("meaningful") part of the image (without the frame).
+	Width int
+	// Size of visible ("meaningful") part of the image (without the frame).
+	Height int
+	// (1=CFA/RAW - 3=RGB)
+	Colors int
+}
+
+// Settings provided into functions which are responsible for creating thumbnails from a *rawkit.Image
+type ThumbnailOptions struct {
+	// JPEG/PNG Quality. [1, 100] Default: 90
+	Quality int
+	// Crop applied to image. Default: nil (no crop)
+	Crop image.Rectangle
+}
+
+// Represents a partialy constucted ThumbnailOption with one completed member
+type ThumbnailOpt func(*ThumbnailOptions)

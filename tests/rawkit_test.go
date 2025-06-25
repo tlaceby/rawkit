@@ -1,15 +1,12 @@
 package rawkit_test
 
 import (
-	"image"
-	"image/color"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/disintegration/imaging"
 	"github.com/tlaceby/rawkit"
 )
 
@@ -47,27 +44,17 @@ func TestOpeningTreeLarge(t *testing.T) {
 	}
 
 	wantW, wantH := 4024, 6024 // FIXME: Update with proper (cropped to sensor dimensions) (4000x6000)
-	if img.Width != wantW || img.Height != wantH {
-		t.Fatalf("unexpected size %dx%d (want %dx%d)", img.Width, img.Height, wantW, wantH)
-	}
-
-	rgba := image.NewNRGBA(image.Rect(0, 0, img.Width, img.Height))
-
-	for y := 0; y < img.Height; y++ {
-		for x := 0; x < img.Width; x++ {
-			i := (y*img.Width + x) * img.Colors
-			r := uint8(img.Buffer[i+0] >> 8)
-			g := uint8(img.Buffer[i+1] >> 8)
-			b := uint8(img.Buffer[i+2] >> 8)
-			rgba.Set(x, y, color.NRGBA{R: r, G: g, B: b, A: 255})
-		}
+	if img.Image.Width != wantW || img.Image.Height != wantH {
+		t.Fatalf("unexpected size %dx%d (want %dx%d)", img.Image.Width, img.Image.Height, wantW, wantH)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
 
-	if err := imaging.Save(rgba, dst); err != nil {
-		t.Fatalf("imaging.Save: %v", err)
+	if err = img.Image.CreateThumbnail(dst); err != nil {
+		t.Fatalf("could not create thumbnail: %s", err.Error())
 	}
+
+	os.Remove(dst)
 }

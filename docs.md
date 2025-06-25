@@ -12,9 +12,18 @@ import "github.com/tlaceby/rawkit"
 - [func LibRawVersionStr\(\) string](<#LibRawVersionStr>)
 - [type ColorSpace](<#ColorSpace>)
 - [type DriveMode](<#DriveMode>)
+- [type Image](<#Image>)
+  - [func \(img \*Image\) CreateThumbnail\(path string, opts ...ThumbnailOpt\) error](<#Image.CreateThumbnail>)
+  - [func \(img \*Image\) RGBAImage\(\) \*image.NRGBA](<#Image.RGBAImage>)
 - [type LibrawImageFormat](<#LibrawImageFormat>)
 - [type RawKitImage](<#RawKitImage>)
   - [func LoadRAW\(path string\) \(\*RawKitImage, error\)](<#LoadRAW>)
+  - [func \(rk \*RawKitImage\) RGBAImage\(\) \*image.NRGBA](<#RawKitImage.RGBAImage>)
+- [type ThumbnailKind](<#ThumbnailKind>)
+- [type ThumbnailOpt](<#ThumbnailOpt>)
+  - [func WithThumbnailCrop\(c image.Rectangle\) ThumbnailOpt](<#WithThumbnailCrop>)
+  - [func WithThumbnailQuality\(q int\) ThumbnailOpt](<#WithThumbnailQuality>)
+- [type ThumbnailOptions](<#ThumbnailOptions>)
 
 
 <a name="LibRawVersionNum"></a>
@@ -36,7 +45,7 @@ func LibRawVersionStr() string
 LibRawVersionStr returns the human\-readable version string of the linked LibRaw library.
 
 <a name="ColorSpace"></a>
-## type [ColorSpace](<https://github.com/tlaceby/rawkit/blob/main/types.go#L21>)
+## type [ColorSpace](<https://github.com/tlaceby/rawkit/blob/main/types.go#L23>)
 
 ColorSpace describes the working color space of the image.
 
@@ -60,7 +69,7 @@ const (
 ```
 
 <a name="DriveMode"></a>
-## type [DriveMode](<https://github.com/tlaceby/rawkit/blob/main/types.go#L35>)
+## type [DriveMode](<https://github.com/tlaceby/rawkit/blob/main/types.go#L37>)
 
 DriveMode represents the camera’s shooting mode \(single, continuous low/high\).
 
@@ -83,8 +92,44 @@ const (
 )
 ```
 
+<a name="Image"></a>
+## type [Image](<https://github.com/tlaceby/rawkit/blob/main/types.go#L106-L115>)
+
+Image is is the most basic data used to do manipulations
+
+```go
+type Image struct {
+    // stored as packed pixels (16-bit)
+    Buffer []uint16
+    // Size of visible ("meaningful") part of the image (without the frame).
+    Width int
+    // Size of visible ("meaningful") part of the image (without the frame).
+    Height int
+    // (1=CFA/RAW - 3=RGB)
+    Colors int
+}
+```
+
+<a name="Image.CreateThumbnail"></a>
+### func \(\*Image\) [CreateThumbnail](<https://github.com/tlaceby/rawkit/blob/main/methods.go#L39>)
+
+```go
+func (img *Image) CreateThumbnail(path string, opts ...ThumbnailOpt) error
+```
+
+CreateThumbnail creates a thumbnail from a rawkit.Image. It accepts options like crop, quality, and kind using helper functions. Returns an error if the thumbnail could not be created or if any parameters are invalid.
+
+<a name="Image.RGBAImage"></a>
+### func \(\*Image\) [RGBAImage](<https://github.com/tlaceby/rawkit/blob/main/methods.go#L20>)
+
+```go
+func (img *Image) RGBAImage() *image.NRGBA
+```
+
+Creates a go standard \*image.NRGBA from a rawkit.Image
+
 <a name="LibrawImageFormat"></a>
-## type [LibrawImageFormat](<https://github.com/tlaceby/rawkit/blob/main/types.go#L4>)
+## type [LibrawImageFormat](<https://github.com/tlaceby/rawkit/blob/main/types.go#L6>)
 
 LibrawImageFormat represents the final output format of the decoded RAW image. Derived from the \`enum LibRaw\_image\_formats\`
 
@@ -111,7 +156,7 @@ const (
 ```
 
 <a name="RawKitImage"></a>
-## type [RawKitImage](<https://github.com/tlaceby/rawkit/blob/main/types.go#L49-L93>)
+## type [RawKitImage](<https://github.com/tlaceby/rawkit/blob/main/types.go#L65-L103>)
 
 Represents all LibRaw image data after processing. Contains image pixel data, camera and lens info, and colorspace data.
 
@@ -119,14 +164,8 @@ Represents all LibRaw image data after processing. Contains image pixel data, ca
 type RawKitImage struct {
     // LibRaw image format (jpeg, jpegxl, bitmap, h265)
     Format LibrawImageFormat
-    // stored as packed pixels (16-bit)
-    Buffer []uint16
-    // Size of visible ("meaningful") part of the image (without the frame).
-    Width int
-    // Size of visible ("meaningful") part of the image (without the frame).
-    Height int
-    // (1=CFA/RAW - 3=RGB)
-    Colors int
+    // Common Raw data Fields
+    Image *Image
     // Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
     Flip int
     // Set to 1 if WB already applied in camera (multishot modes; small raw)
@@ -164,12 +203,86 @@ type RawKitImage struct {
 ```
 
 <a name="LoadRAW"></a>
-### func [LoadRAW](<https://github.com/tlaceby/rawkit/blob/main/rawkit.go#L18>)
+### func [LoadRAW](<https://github.com/tlaceby/rawkit/blob/main/rawkit.go#L19>)
 
 ```go
 func LoadRAW(path string) (*RawKitImage, error)
 ```
 
 LoadRAW opens and decodes a RAW image file at the given path using LibRaw. It returns a fully populated \*RawKitImage struct containing pixel data and metadata. Returns an error if decoding fails or if the file is unsupported.
+
+<a name="RawKitImage.RGBAImage"></a>
+### func \(\*RawKitImage\) [RGBAImage](<https://github.com/tlaceby/rawkit/blob/main/methods.go#L15>)
+
+```go
+func (rk *RawKitImage) RGBAImage() *image.NRGBA
+```
+
+Creates a Go standard image.NRGBA from the \*RawKitImage.Image
+
+<a name="ThumbnailKind"></a>
+## type [ThumbnailKind](<https://github.com/tlaceby/rawkit/blob/main/types.go#L51>)
+
+ThumbnailKind represents the type of image format used for the thumbnail.
+
+```go
+type ThumbnailKind string
+```
+
+<a name="THUMBNAIL_JPEG"></a>
+
+```go
+const (
+    // THUMBNAIL_JPEG represents a .jpeg thumbnail format.
+    THUMBNAIL_JPEG ThumbnailKind = "jpeg"
+
+    // THUMBNAIL_PNG represents a .png thumbnail format.
+    THUMBNAIL_PNG ThumbnailKind = "png"
+
+    // THUMBNAIL_TIFF represents a .tiff thumbnail format.
+    THUMBNAIL_TIFF ThumbnailKind = "tiff"
+)
+```
+
+<a name="ThumbnailOpt"></a>
+## type [ThumbnailOpt](<https://github.com/tlaceby/rawkit/blob/main/types.go#L126>)
+
+Represents a partialy constucted ThumbnailOption with one completed member
+
+```go
+type ThumbnailOpt func(*ThumbnailOptions)
+```
+
+<a name="WithThumbnailCrop"></a>
+### func [WithThumbnailCrop](<https://github.com/tlaceby/rawkit/blob/main/methods.go#L74>)
+
+```go
+func WithThumbnailCrop(c image.Rectangle) ThumbnailOpt
+```
+
+WithThumbnailCrop sets the crop rectangle for CreateThumbnail. The crop must be fully contained within the image, or CreateThumbnail will return an error.
+
+<a name="WithThumbnailQuality"></a>
+### func [WithThumbnailQuality](<https://github.com/tlaceby/rawkit/blob/main/methods.go#L68>)
+
+```go
+func WithThumbnailQuality(q int) ThumbnailOpt
+```
+
+WithThumbnailQuality sets the JPEG/PNG quality \(1–100\) for CreateThumbnail.
+
+<a name="ThumbnailOptions"></a>
+## type [ThumbnailOptions](<https://github.com/tlaceby/rawkit/blob/main/types.go#L118-L123>)
+
+Settings provided into functions which are responsible for creating thumbnails from a \*rawkit.Image
+
+```go
+type ThumbnailOptions struct {
+    // JPEG/PNG Quality. [1, 100] Default: 90
+    Quality int
+    // Crop applied to image. Default: nil (no crop)
+    Crop image.Rectangle
+}
+```
 
 Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)

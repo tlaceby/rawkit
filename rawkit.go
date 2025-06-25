@@ -8,6 +8,7 @@ import (
 
 /*
 #include <stdlib.h>
+#include <stdio.h>
 #include "wrapper/libraw_wrapper.h"
 */
 import "C"
@@ -25,20 +26,19 @@ func LoadRAW(path string) (*RawKitImage, error) {
 	}
 
 	pixels := int(out.width) * int(out.height) * int(out.colors)
-	src := unsafe.Slice((*uint16)(unsafe.Pointer(out.buffer)), pixels)
-
 	buf := make([]uint16, pixels)
-	copy(buf, src)
 
+	copy(buf, unsafe.Slice((*uint16)(unsafe.Pointer(out.buffer)), pixels))
 	runtime.KeepAlive(out)
 
 	img := &RawKitImage{
 		Format: LibrawImageFormat(C.GoString(out.format)),
-		Buffer: buf,
-		Width:  int(out.width),
-		Height: int(out.height),
-
-		Colors:          int(out.colors),
+		Image: &Image{
+			Buffer: buf,
+			Width:  int(out.width),
+			Height: int(out.height),
+			Colors: int(out.colors),
+		},
 		Flip:            int(out.flip),
 		AsShotWBApplied: int(out.asShotWBApplied),
 		RawBitsPerPixel: uint(out.rawBitsPerPixel),
