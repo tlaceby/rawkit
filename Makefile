@@ -8,14 +8,16 @@
 UNAME_S       := $(shell uname -s)
 VERSION_FILE  := .env
 OLD_VER       := $(shell grep -E '^VERSION=' $(VERSION_FILE) | cut -d= -f2)
-LINK_FILES    := $(wildcard link_*.go)
+LINK_FILES    = $(wildcard link_*.go)
 
 .PHONY: release verify nextver bump clean build libs libs-current test generate-link-files clean-link-files describe
 
 describe:
 	@echo "• rawkit version: $(OLD_VER)"
 
-release: verify nextver clean-link-files generate-link-files bump
+release: nextver verify clean-link-files
+	@$(MAKE) VER=$(NEW_VER) generate-link-files
+	@$(MAKE) bump
 	@echo "✔ release pipeline succeeded for $(NEW_VER)"
 
 verify: clean libs-current generate-link-files test
@@ -39,8 +41,8 @@ clean-link-files:
 	@rm -f $(LINK_FILES)
 
 generate-link-files:
-	@echo "• generating version-specific link files"
-	@bash ./scripts/gen_link_files.sh $(OLD_VER)
+	@echo "• generating version-specific link files for $${VER:-$(OLD_VER)}"
+	@bash ./scripts/gen_link_files.sh $${VER:-$(OLD_VER)}
 
 build: nextver libs
 
