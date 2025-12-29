@@ -3,11 +3,11 @@ package rk
 /*
 #cgo CFLAGS: -I${SRCDIR}/core
 
-// Apple Silicon (Homebrew)
+// Apple Silicon OSX (Install w/ Homebrew)
 #cgo darwin,arm64 CFLAGS: -I/opt/homebrew/opt/libraw/include
 #cgo darwin,arm64 LDFLAGS: -L/opt/homebrew/opt/libraw/lib -lraw
 
-// Intel (Homebrew)
+// Intel OSX (Install w/ Homebrew)
 #cgo darwin,amd64 CFLAGS: -I/usr/local/opt/libraw/include
 #cgo darwin,amd64 LDFLAGS: -L/usr/local/opt/libraw/lib -lraw
 
