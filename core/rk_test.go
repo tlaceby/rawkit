@@ -1,4 +1,4 @@
-package rk
+package core
 
 import "testing"
 

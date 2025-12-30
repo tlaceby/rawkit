@@ -1,7 +1,7 @@
-package rk
+package core
 
 /*
-#cgo CFLAGS: -I${SRCDIR}/core
+#cgo CFLAGS: -I${SRCDIR}/lib
 
 // Apple Silicon OSX (Install w/ Homebrew)
 #cgo darwin,arm64 CFLAGS: -I/opt/homebrew/opt/libraw/include
@@ -18,8 +18,10 @@ package rk
 #cgo windows CFLAGS: -I${LIBRAW_PATH}/include
 #cgo windows LDFLAGS: -L${LIBRAW_PATH}/lib -lraw
 
-#include "helpers.h"
+#include "rawkit.h"
 #include "helpers.c"
+#include "helpers.h"
+#include "processor.c"
 */
 import "C"
 

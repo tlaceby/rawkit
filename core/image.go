@@ -1,4 +1,6 @@
-package rk
+package core
+
+// Helper methods for the Image, ImageData & ImageMeta structs
 
 // Whether the image is stored in RAW format
 func (i *Image) IsRaw() bool { return i.Type == IMG_TYPE_RAW }
