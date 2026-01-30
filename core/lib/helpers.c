@@ -1,16 +1,16 @@
-#include "rawkit.h"
 #include "helpers.h"
+#include <stdio.h>
 
-bool file_exists (const char* path) {
-    FILE* fp;
-    if ((fp = fopen(path, 'r'))) {
+bool file_exists(const char* path) {
+    if (path == NULL) {
+        return false;
+    }
+    
+    FILE* fp = fopen(path, "r");
+    if (fp) {
         fclose(fp);
         return true;
     }
 
     return false;
-}
-
-const char* get_libraw_version() {
-    return libraw_version();
 }

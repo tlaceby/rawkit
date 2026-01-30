@@ -3,7 +3,7 @@ package core
 import "testing"
 
 func TestLibrawVersion(t *testing.T) {
-	v := Version()
+	v := LibrawVersion()
 	if v == "" {
 		t.Fatal("expected version string, got empty")
 	}
