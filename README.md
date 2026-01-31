@@ -4,7 +4,7 @@
 A Go library for reading and processing RAW image files. Wraps [LibRaw](https://www.libraw.org/) via cgo with fallback support for standard image formats (JPEG, PNG).
 
 ```
-go get github.com/tlaceby/rawkit
+go get github.com/tlaceby/rawkit@latest
 ```
 
 ## Supported Formats

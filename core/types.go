@@ -55,7 +55,7 @@ type Image struct {
 	RawType RAWImageType // Specific RAW format (ARW, CR2, etc.)
 	Path    string       // Original file path
 	Data    *ImageData   // Processed pixel data
-	Meta    *ImageMeta   // Camera metadata (nil for non-RAW)
+	Meta    *EXIFData    // Camera metadata (nil for non-RAW)
 }
 
 // ImageData stores processed pixel data in 16-bit RGB format.
@@ -69,13 +69,13 @@ type ImageData struct {
 	Data       []uint16   // Raw pixel data
 }
 
-// ImageMeta contains EXIF metadata extracted from RAW files.
-type ImageMeta struct {
-	ISO         int     // ISO sensitivity (e.g., 100, 400, 6400)
-	Aperture    float32 // F-number (e.g., 2.8, 5.6)
-	SS          float32 // Shutter speed in seconds (e.g., 0.001 for 1/1000s)
-	FocalLength float32 // Focal length in millimeters
-	LensModel   string  // Lens name/model
-	CameraMake  string  // Camera manufacturer (e.g., "Sony")
-	CameraModel string  // Camera model (e.g., "A6700")
+// EXIFData contains EXIF metadata extracted from RAW files.
+type EXIFData struct {
+	ISO          int     // ISO sensitivity (e.g., 100, 400, 6400)
+	Aperture     float32 // F-number (e.g., 2.8, 5.6)
+	ShutterSpeed float32 // Shutter speed in seconds (e.g., 0.001 for 1/1000s)
+	FocalLength  float32 // Focal length in millimeters
+	LensModel    string  // Lens name/model
+	CameraMake   string  // Camera manufacturer (e.g., "Sony")
+	CameraModel  string  // Camera model (e.g., "A6700")
 }

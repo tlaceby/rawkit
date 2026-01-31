@@ -53,7 +53,7 @@ func LibrawVersion() string {
 //	}
 //	fmt.Printf("Camera: %s %s\n", meta.CameraMake, meta.CameraModel)
 //	fmt.Printf("Settings: ISO %d, f/%.1f, %gs\n", meta.ISO, meta.Aperture, meta.SS)
-func ReadRAWMetadata(filePath string) (*ImageMeta, error) {
+func ReadRAWMetadata(filePath string) (*EXIFData, error) {
 	if !isRawFile(filePath) {
 		return nil, errors.New("file is not raw")
 	}
@@ -71,14 +71,14 @@ func ReadRAWMetadata(filePath string) (*ImageMeta, error) {
 		return nil, nil
 	}
 
-	meta := &ImageMeta{
-		ISO:         int(cMeta.iso),
-		Aperture:    float32(cMeta.aperture),
-		SS:          float32(cMeta.shutter_speed),
-		FocalLength: float32(cMeta.focal_length),
-		LensModel:   C.GoString(cMeta.lens_model),
-		CameraMake:  C.GoString(cMeta.camera_make),
-		CameraModel: C.GoString(cMeta.camera_model),
+	meta := &EXIFData{
+		ISO:          int(cMeta.iso),
+		Aperture:     float32(cMeta.aperture),
+		ShutterSpeed: float32(cMeta.shutter_speed),
+		FocalLength:  float32(cMeta.focal_length),
+		LensModel:    C.GoString(cMeta.lens_model),
+		CameraMake:   C.GoString(cMeta.camera_make),
+		CameraModel:  C.GoString(cMeta.camera_model),
 	}
 
 	C.image_meta_free(cMeta)
@@ -166,7 +166,7 @@ func readRawImageData(filePath string) (*ImageData, error) {
 	return imgData, nil
 }
 
-func readRawFull(filePath string) (*ImageData, *ImageMeta, error) {
+func readRawFull(filePath string) (*ImageData, *EXIFData, error) {
 	var errCode C.int
 	var cMeta *C.ImageMeta
 	path := C.CString(filePath)
@@ -180,16 +180,16 @@ func readRawFull(filePath string) (*ImageData, *ImageMeta, error) {
 	imgData := convertCImageData(cData)
 	C.image_data_free(cData)
 
-	var meta *ImageMeta
+	var meta *EXIFData
 	if cMeta != nil {
-		meta = &ImageMeta{
-			ISO:         int(cMeta.iso),
-			Aperture:    float32(cMeta.aperture),
-			SS:          float32(cMeta.shutter_speed),
-			FocalLength: float32(cMeta.focal_length),
-			LensModel:   C.GoString(cMeta.lens_model),
-			CameraMake:  C.GoString(cMeta.camera_make),
-			CameraModel: C.GoString(cMeta.camera_model),
+		meta = &EXIFData{
+			ISO:          int(cMeta.iso),
+			Aperture:     float32(cMeta.aperture),
+			ShutterSpeed: float32(cMeta.shutter_speed),
+			FocalLength:  float32(cMeta.focal_length),
+			LensModel:    C.GoString(cMeta.lens_model),
+			CameraMake:   C.GoString(cMeta.camera_make),
+			CameraModel:  C.GoString(cMeta.camera_model),
 		}
 		C.image_meta_free(cMeta)
 	}
