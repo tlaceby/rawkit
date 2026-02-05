@@ -217,7 +217,7 @@ func convertCImageData(cData *C.ImageData) *ImageData {
 		Width:      width,
 		Height:     height,
 		Colorspace: Colorspace(cData.colorspace),
-		Channels:   channels,
+		Channels:   Channels(channels),
 		BitDepth:   int(cData.bit_depth),
 		Data:       data,
 	}

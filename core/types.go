@@ -12,6 +12,22 @@ const (
 	IMG_TYPE_UNKNOWN                  // Unknown or unsupported format
 )
 
+// String returns the string representation of ImageType.
+func (t ImageType) String() string {
+	switch t {
+	case IMG_TYPE_RAW:
+		return "RAW"
+	case IMG_TYPE_JPG:
+		return "JPEG"
+	case IMG_TYPE_PNG:
+		return "PNG"
+	case IMG_TYPE_UNKNOWN:
+		return "Unknown"
+	default:
+		return "Unknown"
+	}
+}
+
 // RAWImageType represents specific RAW format variants by manufacturer.
 type RAWImageType int
 
@@ -26,6 +42,32 @@ const (
 	RAW_TYPE_RW2                         // Panasonic/Lumix
 	RAW_TYPE_UNKNOWN                     // Unknown RAW format
 )
+
+// String returns the string representation of RAWImageType.
+func (t RAWImageType) String() string {
+	switch t {
+	case RAW_TYPE_ARW:
+		return "ARW"
+	case RAW_TYPE_CR2:
+		return "CR2"
+	case RAW_TYPE_CR3:
+		return "CR3"
+	case RAW_TYPE_NEF:
+		return "NEF"
+	case RAW_TYPE_DNG:
+		return "DNG"
+	case RAW_TYPE_ORF:
+		return "ORF"
+	case RAW_TYPE_RAF:
+		return "RAF"
+	case RAW_TYPE_RW2:
+		return "RW2"
+	case RAW_TYPE_UNKNOWN:
+		return "Unknown"
+	default:
+		return "Unknown"
+	}
+}
 
 // Colorspace represents the color profile of image data.
 // Values correspond to LibRaw's colorspace enum.
@@ -48,6 +90,14 @@ const (
 	LIBRAW_COLORSPACE_Unknown           Colorspace = 255  // Unknown colorspace
 )
 
+// Either RGBA OR RGB (4, 3)
+type Channels int
+
+const (
+	LIBRAW_CHANNELS_RGB  Channels = 3
+	LIBRAW_CHANNELS_RGBA Channels = 4
+)
+
 // Image represents a loaded image from the filesystem.
 // Meta is only populated for RAW files; it will be nil for JPEG/PNG.
 type Image struct {
@@ -64,7 +114,7 @@ type ImageData struct {
 	Width      int        // Image width in pixels
 	Height     int        // Image height in pixels
 	Colorspace Colorspace // Color profile
-	Channels   int        // Number of channels (3 for RGB)
+	Channels   Channels   // Number of channels (3 for RGB)
 	BitDepth   int        // Bits per channel (8 or 16)
 	Data       []uint16   // Raw pixel data
 }
