@@ -1,6 +1,7 @@
 package processing
 
 import (
+	"github.com/disintegration/imaging"
 	"github.com/tlaceby/rawkit/core"
 	"github.com/tlaceby/rawkit/processing/shaders"
 )
@@ -220,6 +221,72 @@ func CropImage(edit ImageEdit, img *core.ImageData) *core.ImageData {
 	return &core.ImageData{
 		Width:      edit.CropWidth,
 		Height:     edit.CropHeight,
+		Channels:   img.Channels,
+		Colorspace: img.Colorspace,
+		BitDepth:   img.BitDepth,
+		Data:       newData,
+	}
+}
+
+// specifies the resampling filter to use during image resizing.
+type ResizeFilter int
+
+const (
+	// FilterNearest uses nearest-neighbor interpolation (fastest, lowest quality)
+	FilterNearest ResizeFilter = iota
+	// FilterBox uses box (average) sampling (fast, simple antialiasing)
+	FilterBox
+	// FilterLinear uses bilinear interpolation (balanced speed/quality)
+	FilterLinear
+	// FilterCubic uses bicubic interpolation (higher quality, slower)
+	FilterCubic
+	// FilterLanczos uses Lanczos resampling (best quality, slowest)
+	FilterLanczos
+)
+
+// toImagingFilter converts ResizeFilter to imaging.ResampleFilter.
+func (f ResizeFilter) toImagingFilter() imaging.ResampleFilter {
+	switch f {
+	case FilterNearest:
+		return imaging.NearestNeighbor
+	case FilterBox:
+		return imaging.Box
+	case FilterLinear:
+		return imaging.Linear
+	case FilterCubic:
+		return imaging.CatmullRom
+	case FilterLanczos:
+		return imaging.Lanczos
+	default:
+		return imaging.Lanczos // default to best quality
+	}
+}
+
+// Resize an image
+func Resize(img *core.ImageData, width, height int, filter ResizeFilter) *core.ImageData {
+	resized := imaging.Resize(img, width, height, filter.toImagingFilter())
+	bounds := resized.Bounds()
+	newWidth := bounds.Dx()
+	newHeight := bounds.Dy()
+
+	newData := make([]uint16, newWidth*newHeight*int(img.Channels))
+	for y := 0; y < newHeight; y++ {
+		for x := 0; x < newWidth; x++ {
+			r, g, b, a := resized.At(x, y).RGBA()
+			idx := (y*newWidth + x) * int(img.Channels)
+			newData[idx] = uint16(r)
+			newData[idx+1] = uint16(g)
+			newData[idx+2] = uint16(b)
+
+			if img.Channels == core.LIBRAW_CHANNELS_RGBA {
+				newData[idx+3] = uint16(a)
+			}
+		}
+	}
+
+	return &core.ImageData{
+		Width:      newWidth,
+		Height:     newHeight,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
 		BitDepth:   img.BitDepth,
