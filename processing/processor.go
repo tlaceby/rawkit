@@ -44,7 +44,6 @@ func ApplyEdit(img *core.ImageData, edit ImageEdit) (*core.ImageData, error) {
 		Height:     img.Height,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
-		BitDepth:   img.BitDepth,
 		Data:       data,
 	}, nil
 }
@@ -103,7 +102,6 @@ func ApplyShaders(img *core.ImageData, shaderPasses []ShaderPass) (*core.ImageDa
 		Height:     img.Height,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
-		BitDepth:   img.BitDepth,
 		Data:       data,
 	}, nil
 }
@@ -181,7 +179,6 @@ func Process(img *core.ImageData, edit ImageEdit, shaderPasses []ShaderPass) (*c
 		Height:     img.Height,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
-		BitDepth:   img.BitDepth,
 		Data:       data,
 	}, nil
 }
@@ -223,7 +220,6 @@ func CropImage(edit ImageEdit, img *core.ImageData) *core.ImageData {
 		Height:     edit.CropHeight,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
-		BitDepth:   img.BitDepth,
 		Data:       newData,
 	}
 }
@@ -289,7 +285,6 @@ func Resize(img *core.ImageData, width, height int, filter ResizeFilter) *core.I
 		Height:     newHeight,
 		Channels:   img.Channels,
 		Colorspace: img.Colorspace,
-		BitDepth:   img.BitDepth,
 		Data:       newData,
 	}
 }

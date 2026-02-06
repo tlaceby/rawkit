@@ -69,26 +69,31 @@ func (t RAWImageType) String() string {
 	}
 }
 
-// Colorspace represents the color profile of image data.
-// Values correspond to LibRaw's colorspace enum.
+// represents the color profile of image data  --  Values correspond to LibRaw's colorspace enum.
 type Colorspace int
 
 const (
-	LIBRAW_COLORSPACE_NotFound          Colorspace = iota // Colorspace not found
-	LIBRAW_COLORSPACE_sRGB                                // Standard RGB
-	LIBRAW_COLORSPACE_AdobeRGB                            // Adobe RGB (1998)
-	LIBRAW_COLORSPACE_WideGamutRGB                        // Wide Gamut RGB
-	LIBRAW_COLORSPACE_ProPhotoRGB                         // ProPhoto RGB
-	LIBRAW_COLORSPACE_ICC                                 // ICC Profile
-	LIBRAW_COLORSPACE_Uncalibrated                        // Uncalibrated
-	LIBRAW_COLORSPACE_CameraLinearUniWB                   // Camera Linear with UniWB
-	LIBRAW_COLORSPACE_CameraLinear                        // Camera Linear
-	LIBRAW_COLORSPACE_CameraGammaUniWB                    // Camera Gamma with UniWB
-	LIBRAW_COLORSPACE_CameraGamma                         // Camera Gamma
-	LIBRAW_COLORSPACE_MonochromeLinear                    // Monochrome Linear
-	LIBRAW_COLORSPACE_MonochromeGamma                     // Monochrome Gamma
-	LIBRAW_COLORSPACE_Unknown           Colorspace = 255  // Unknown colorspace
+	LIBRAW_COLORSPACE_NotFound     Colorspace = iota // Colorspace not found
+	LIBRAW_COLORSPACE_sRGB                           // Standard RGB
+	LIBRAW_COLORSPACE_AdobeRGB                       // Adobe RGB (1998)
+	LIBRAW_COLORSPACE_WideGamutRGB                   // Wide Gamut RGB
+	LIBRAW_COLORSPACE_ProPhotoRGB                    // ProPhoto RGB
+	LIBRAW_COLORSPACE_Unknown      Colorspace = 255  // Unknown colorspace
 )
+
+// Valid reports whether this colorspace is supported
+func (c Colorspace) Supported() bool {
+	switch c {
+	case LIBRAW_COLORSPACE_NotFound,
+		LIBRAW_COLORSPACE_sRGB,
+		LIBRAW_COLORSPACE_AdobeRGB,
+		LIBRAW_COLORSPACE_WideGamutRGB,
+		LIBRAW_COLORSPACE_ProPhotoRGB:
+		return true
+	default:
+		return false
+	}
+}
 
 // Either RGBA OR RGB (4, 3)
 type Channels int
@@ -111,21 +116,21 @@ type Image struct {
 // ImageData stores processed pixel data in 16-bit RGB format.
 // Data is laid out as [R0, G0, B0, R1, G1, B1, ...] in row-major order.
 type ImageData struct {
-	Width      int        // Image width in pixels
-	Height     int        // Image height in pixels
+	Width      int        // heidth in pixels
+	Height     int        // height in pixels
 	Colorspace Colorspace // Color profile
 	Channels   Channels   // Number of channels (3 for RGB)
-	BitDepth   int        // Bits per channel (8 or 16)
-	Data       []uint16   // Raw pixel data
+	Data       []uint16   // Raw pixel data stored with a 16 bit-depth
 }
 
-// EXIFData contains EXIF metadata extracted from RAW files.
+// contains EXIF metadata extracted from RAW files.
 type EXIFData struct {
-	ISO          int     // ISO sensitivity (e.g., 100, 400, 6400)
-	Aperture     float32 // F-number (e.g., 2.8, 5.6)
-	ShutterSpeed float32 // Shutter speed in seconds (e.g., 0.001 for 1/1000s)
-	FocalLength  float32 // Focal length in millimeters
-	LensModel    string  // Lens name/model
-	CameraMake   string  // Camera manufacturer (e.g., "Sony")
-	CameraModel  string  // Camera model (e.g., "A6700")
+	ISO          int     // 400
+	Aperture     float32 // 2.8
+	ShutterSpeed float32 // 0.001 for 1/1000s
+	FocalLength  float32 // 35.0mm
+
+	LensModel   string // "Sigma 16mm f1.4"
+	CameraMake  string // "Sony"
+	CameraModel string // "A6700"
 }

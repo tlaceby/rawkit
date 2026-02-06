@@ -129,3 +129,40 @@ func (img *ImageData) Save(outputPath string, opts ...EncodeOption) error {
 
 	return imaging.Save(img, outputPath, imagingOpts...)
 }
+
+// constructs an ImageData from a standard image.Image. Colorspace defaults to sRGB and BitDepth to 16.
+func ImageDataFromImage(img image.Image) *ImageData {
+	bounds := img.Bounds()
+	newWidth := bounds.Dx()
+	newHeight := bounds.Dy()
+
+	channels := LIBRAW_CHANNELS_RGB
+	switch img.ColorModel() {
+	case color.RGBAModel, color.RGBA64Model, color.NRGBAModel, color.NRGBA64Model, color.AlphaModel, color.Alpha16Model:
+		channels = LIBRAW_CHANNELS_RGBA
+	}
+
+	newData := make([]uint16, newWidth*newHeight*int(channels))
+	for y := 0; y < newHeight; y++ {
+		for x := 0; x < newWidth; x++ {
+			r, g, b, a := img.At(x, y).RGBA()
+			idx := (y*newWidth + x) * int(channels)
+
+			newData[idx] = uint16(r)
+			newData[idx+1] = uint16(g)
+			newData[idx+2] = uint16(b)
+
+			if channels == LIBRAW_CHANNELS_RGBA {
+				newData[idx+3] = uint16(a)
+			}
+		}
+	}
+
+	return &ImageData{
+		Width:      newWidth,
+		Height:     newHeight,
+		Channels:   channels,
+		Colorspace: LIBRAW_COLORSPACE_sRGB,
+		Data:       newData,
+	}
+}

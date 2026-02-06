@@ -91,7 +91,6 @@ func (s *GPUSession) Update(edit ImageEdit, passes []ShaderPass) (*core.ImageDat
 		Height:     s.croppedData.Height,
 		Channels:   s.croppedData.Channels,
 		Colorspace: s.croppedData.Colorspace,
-		BitDepth:   s.croppedData.BitDepth,
 		Data:       data,
 	}, nil
 }

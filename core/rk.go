@@ -4,6 +4,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -35,6 +36,34 @@ import (
 #include <stdlib.h>
 */
 import "C"
+
+// Returns type information based on image file extension
+func DetectImageType(ext string) (ImageType, RAWImageType) {
+	switch strings.ToLower(ext) {
+	case ".arw":
+		return IMG_TYPE_RAW, RAW_TYPE_ARW
+	case ".cr2":
+		return IMG_TYPE_RAW, RAW_TYPE_CR2
+	case ".cr3":
+		return IMG_TYPE_RAW, RAW_TYPE_CR3
+	case ".nef":
+		return IMG_TYPE_RAW, RAW_TYPE_NEF
+	case ".dng":
+		return IMG_TYPE_RAW, RAW_TYPE_DNG
+	case ".orf":
+		return IMG_TYPE_RAW, RAW_TYPE_ORF
+	case ".raf":
+		return IMG_TYPE_RAW, RAW_TYPE_RAF
+	case ".rw2":
+		return IMG_TYPE_RAW, RAW_TYPE_RW2
+	case ".jpg", ".jpeg":
+		return IMG_TYPE_JPG, RAW_TYPE_UNKNOWN
+	case ".png":
+		return IMG_TYPE_PNG, RAW_TYPE_UNKNOWN
+	default:
+		return IMG_TYPE_UNKNOWN, RAW_TYPE_UNKNOWN
+	}
+}
 
 // LibrawVersion returns the version string of the underlying LibRaw library.
 func LibrawVersion() string {
@@ -102,6 +131,7 @@ func ReadImageData(filePath string) (*ImageData, error) {
 	if isRawFile(filePath) {
 		return readRawImageData(filePath)
 	}
+
 	return readStandardImage(filePath)
 }
 
@@ -120,7 +150,7 @@ func ReadImageData(filePath string) (*ImageData, error) {
 //	    fmt.Printf("Camera: %s\n", img.Meta.CameraModel)
 //	}
 func ReadAll(filePath string) (*Image, error) {
-	imgType, rawType := detectImageType(filepath.Ext(filePath))
+	imgType, rawType := DetectImageType(filepath.Ext(filePath))
 
 	img := &Image{
 		Type:    imgType,
@@ -162,6 +192,10 @@ func readRawImageData(filePath string) (*ImageData, error) {
 	}
 
 	imgData := convertCImageData(cData)
+	if !imgData.Colorspace.Supported() {
+		return nil, fmt.Errorf("unsupported colorspace %d", imgData.Colorspace)
+	}
+
 	C.image_data_free(cData)
 	return imgData, nil
 }
@@ -218,7 +252,6 @@ func convertCImageData(cData *C.ImageData) *ImageData {
 		Height:     height,
 		Colorspace: Colorspace(cData.colorspace),
 		Channels:   Channels(channels),
-		BitDepth:   int(cData.bit_depth),
 		Data:       data,
 	}
 }
@@ -228,6 +261,7 @@ func readStandardImage(filePath string) (*ImageData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer file.Close()
 
 	img, _, err := image.Decode(file)
@@ -254,40 +288,12 @@ func readStandardImage(filePath string) (*ImageData, error) {
 		Width:      width,
 		Height:     height,
 		Colorspace: LIBRAW_COLORSPACE_sRGB,
-		Channels:   3,
-		BitDepth:   8,
+		Channels:   LIBRAW_CHANNELS_RGB,
 		Data:       data,
 	}, nil
 }
 
 func isRawFile(filePath string) bool {
-	imgType, _ := detectImageType(filepath.Ext(filePath))
+	imgType, _ := DetectImageType(filepath.Ext(filePath))
 	return imgType == IMG_TYPE_RAW
-}
-
-func detectImageType(ext string) (ImageType, RAWImageType) {
-	switch strings.ToLower(ext) {
-	case ".arw":
-		return IMG_TYPE_RAW, RAW_TYPE_ARW
-	case ".cr2":
-		return IMG_TYPE_RAW, RAW_TYPE_CR2
-	case ".cr3":
-		return IMG_TYPE_RAW, RAW_TYPE_CR3
-	case ".nef":
-		return IMG_TYPE_RAW, RAW_TYPE_NEF
-	case ".dng":
-		return IMG_TYPE_RAW, RAW_TYPE_DNG
-	case ".orf":
-		return IMG_TYPE_RAW, RAW_TYPE_ORF
-	case ".raf":
-		return IMG_TYPE_RAW, RAW_TYPE_RAF
-	case ".rw2":
-		return IMG_TYPE_RAW, RAW_TYPE_RW2
-	case ".jpg", ".jpeg":
-		return IMG_TYPE_JPG, RAW_TYPE_UNKNOWN
-	case ".png":
-		return IMG_TYPE_PNG, RAW_TYPE_UNKNOWN
-	default:
-		return IMG_TYPE_UNKNOWN, RAW_TYPE_UNKNOWN
-	}
 }
